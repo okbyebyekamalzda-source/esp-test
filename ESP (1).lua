@@ -85,8 +85,7 @@ do
     end);
 end;
 
-local Settings = {
-    Enabled = false,
+getgenv().Settings = getgenv().Settings or {    Enabled = false,
     LocalPlayer = true,
     Font = "Tahoma",
     FontSize = 12,
