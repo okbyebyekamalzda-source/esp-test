@@ -86,7 +86,7 @@ do
 end;
 
 local Settings = {
-    Enabled = true,
+    Enabled = false,
     LocalPlayer = true,
     Font = "Tahoma",
     FontSize = 12,
