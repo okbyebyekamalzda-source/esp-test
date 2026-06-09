@@ -85,7 +85,8 @@ do
     end);
 end;
 
-getgenv().Settings = getgenv().Settings or {    Enabled = false,
+local Settings = {
+    Enabled = true,
     LocalPlayer = true,
     Font = "Tahoma",
     FontSize = 12,
@@ -94,7 +95,7 @@ getgenv().Settings = getgenv().Settings or {    Enabled = false,
     RefreshRate = 60,
 
     Highlight = {
-        Enabled = false,
+        Enabled = true,
         FillColor = Color3FromRGB(216, 126, 157),
         OutlineColor = Color3FromRGB(0, 0, 0),
         FillTransparency = 0.5,
@@ -103,20 +104,20 @@ getgenv().Settings = getgenv().Settings or {    Enabled = false,
     },
 
     Box = {
-        Enabled = false,
+        Enabled = true,
         Rotation = 90,
         Color = { Color3FromRGB(216, 126, 157), Color3FromRGB(216, 126, 157) },
         Transparency = { 0, 0 },
 
         Glow = {
-            Enabled = false,
+            Enabled = true,
             Rotation = 90,
             Color = { Color3FromRGB(216, 126, 157), Color3FromRGB(216, 126, 157) },
             Transparency = { 0.75, 0.75 },
         },
 
         Fill = {
-            Enabled = false,
+            Enabled = true,
             Rotation = 90,
             Color = { Color3FromRGB(216, 126, 157), Color3FromRGB(216, 126, 157) },
             Transparency = { 1, 0.5 },
@@ -125,11 +126,11 @@ getgenv().Settings = getgenv().Settings or {    Enabled = false,
 
     Bars = {
         HealthBar = {
-            Enabled = false,
+            Enabled = true,
             Position = "Left",
             Color = { Color3FromRGB(131, 245, 78), Color3FromRGB(255, 255, 0), Color3FromRGB(252, 71, 77) },
             Text = {
-                Enabled = false,
+                Enabled = true,
                 FollowBar = false,
                 Ending = "HP",
                 Position = "Left",
@@ -139,7 +140,7 @@ getgenv().Settings = getgenv().Settings or {    Enabled = false,
         },
 
         ArmorBar = {
-            Enabled = false,
+            Enabled = true,
             Position = "Bottom",
             Color = { Color3FromRGB(52, 131, 235), Color3FromRGB(52, 131, 235), Color3FromRGB(52, 131, 235) },
             Type = function(Character)
@@ -149,7 +150,7 @@ getgenv().Settings = getgenv().Settings or {    Enabled = false,
     },
 
     Name = {
-        Enabled = false,
+        Enabled = true,
         UseDisplay = true,
         Position = "Top",
         Color = Color3FromRGB(255, 255, 255),
@@ -157,7 +158,7 @@ getgenv().Settings = getgenv().Settings or {    Enabled = false,
     },
 
     Distance = {
-        Enabled = false,
+        Enabled = true,
         Ending = "st",
         Position = "Bottom",
         Color = Color3FromRGB(255, 255, 255),
@@ -165,7 +166,7 @@ getgenv().Settings = getgenv().Settings or {    Enabled = false,
     },
 
     Weapon = {
-        Enabled = false,
+        Enabled = true,
         ShowNone = true,
         Position = "Bottom",
         Color = Color3FromRGB(255, 255, 255),
@@ -173,7 +174,7 @@ getgenv().Settings = getgenv().Settings or {    Enabled = false,
     },
 
     Flags = {
-        Enabled = false,
+        Enabled = true,
         Position = "Right",
         Color = Color3FromRGB(255, 255, 255),
         Transparency = 0,
