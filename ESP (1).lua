@@ -1424,3 +1424,12 @@ do
         end;
     end;
 end;
+-- In ESP (1).lua
+local Bridge = getgenv().ESPBridge
+
+-- This function runs every frame/render and reads from Bridge.Settings
+game:GetService("RunService").RenderStepped:Connect(function()
+    if Bridge.Settings.Enabled then
+        -- Your ESP drawing logic goes here, using Bridge.Settings.Box.Enabled, etc.
+    end
+end)
