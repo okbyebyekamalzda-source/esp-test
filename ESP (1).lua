@@ -86,8 +86,8 @@ do
 end;
 
 local Settings = {
-    Enabled = true,
-    LocalPlayer = true,
+    Enabled = false,
+    LocalPlayer = false,
     Font = "Tahoma",
     FontSize = 12,
     FontType = "lowercase",
@@ -95,7 +95,7 @@ local Settings = {
     RefreshRate = 60,
 
     Highlight = {
-        Enabled = true,
+        Enabled = false,
         FillColor = Color3FromRGB(216, 126, 157),
         OutlineColor = Color3FromRGB(0, 0, 0),
         FillTransparency = 0.5,
@@ -104,20 +104,20 @@ local Settings = {
     },
 
     Box = {
-        Enabled = true,
+        Enabled = false,
         Rotation = 90,
         Color = { Color3FromRGB(216, 126, 157), Color3FromRGB(216, 126, 157) },
         Transparency = { 0, 0 },
 
         Glow = {
-            Enabled = true,
+            Enabled = false,
             Rotation = 90,
             Color = { Color3FromRGB(216, 126, 157), Color3FromRGB(216, 126, 157) },
             Transparency = { 0.75, 0.75 },
         },
 
         Fill = {
-            Enabled = true,
+            Enabled = false,
             Rotation = 90,
             Color = { Color3FromRGB(216, 126, 157), Color3FromRGB(216, 126, 157) },
             Transparency = { 1, 0.5 },
@@ -126,11 +126,11 @@ local Settings = {
 
     Bars = {
         HealthBar = {
-            Enabled = true,
+            Enabled = false,
             Position = "Left",
             Color = { Color3FromRGB(131, 245, 78), Color3FromRGB(255, 255, 0), Color3FromRGB(252, 71, 77) },
             Text = {
-                Enabled = true,
+                Enabled = false,
                 FollowBar = false,
                 Ending = "HP",
                 Position = "Left",
@@ -140,7 +140,7 @@ local Settings = {
         },
 
         ArmorBar = {
-            Enabled = true,
+            Enabled = false,
             Position = "Bottom",
             Color = { Color3FromRGB(52, 131, 235), Color3FromRGB(52, 131, 235), Color3FromRGB(52, 131, 235) },
             Type = function(Character)
@@ -150,7 +150,7 @@ local Settings = {
     },
 
     Name = {
-        Enabled = true,
+        Enabled = false,
         UseDisplay = true,
         Position = "Top",
         Color = Color3FromRGB(255, 255, 255),
@@ -158,7 +158,7 @@ local Settings = {
     },
 
     Distance = {
-        Enabled = true,
+        Enabled = false,
         Ending = "st",
         Position = "Bottom",
         Color = Color3FromRGB(255, 255, 255),
@@ -166,7 +166,7 @@ local Settings = {
     },
 
     Weapon = {
-        Enabled = true,
+        Enabled = false,
         ShowNone = true,
         Position = "Bottom",
         Color = Color3FromRGB(255, 255, 255),
@@ -174,7 +174,7 @@ local Settings = {
     },
 
     Flags = {
-        Enabled = true,
+        Enabled = false,
         Position = "Right",
         Color = Color3FromRGB(255, 255, 255),
         Transparency = 0,
