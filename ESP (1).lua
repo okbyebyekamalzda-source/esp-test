@@ -1,1329 +1,1121 @@
-local Players = cloneref(game:GetService("Players"));
-local RunService = cloneref(game:GetService("RunService"));
-local HttpService = cloneref(game:GetService("HttpService"));
-local Camera = workspace.CurrentCamera;
-local LocalPlayer = Players.LocalPlayer;
+if ESP and ESP.Unload then
+    ESP.Unload()
+end
 
-local MathFloor = math.floor;
-local MathMax = math.max;
-local MathMin = math.min;
-local MathHuge = math.huge;
-local MathClamp = math.clamp;
-local MathSqrt = math.sqrt;
-local MathTan = math.tan;
-local MathRad = math.rad;
+if not LPH_OBFUSCATED then
+    LPH_NO_VIRTUALIZE = function(Func) return Func end
+end
 
-local Vector3New = Vector3.new;
-local UDim2New = UDim2.new;
-local Color3New = Color3.new;
-local Color3FromRGB = Color3.fromRGB;
-local InstanceNew = Instance.new;
-local Vector2New = Vector2.new;
-local CFrameNew = CFrame.new;
-local ToString = tostring;
+local game = game
+local GetService = game.GetService
+local Service = function(Name)
+    return cloneref(GetService(game, Name))
+end
 
-local ColorWhite = Color3New(1, 1, 1);
-local ColorBlack = Color3New(0, 0, 0);
+local Players = Service("Players")
+local RunService = Service("RunService")
+local HttpService = Service("HttpService")
+local Workspace = Service("Workspace")
 
-local TargetFrametime = 1 / 60;
-local BoxMinSize = 10;
-local CullDistanceSq = 9e9;
-local LodDistanceSq = 300 * 300;
-local GlowPad = 21;
-local GlowPad2 = GlowPad * 2;
+local Instance_new = Instance.new
+local Color3_fromRGB, Color3_new, Color3_fromHSV, Color3_fromHex = Color3.fromRGB, Color3.new, Color3.fromHSV, Color3.fromHex
+local table_clear, table_insert, table_remove, table_unpack, table_find, table_sort, table_concat = table.clear, table.insert, table.remove, table.unpack, table.find, table.sort, table.concat
+local string_find, string_match, string_format, string_gsub, string_lower, string_upper, string_sub = string.find, string.match, string.format, string.gsub, string.lower, string.upper, string.sub
+local task_wait, task_spawn, task_delay, task_defer = task.wait, task.spawn, task.delay, task.defer
+local coroutine_wrap, coroutine_close, coroutine_create, coroutine_resume = coroutine.wrap, coroutine.close, coroutine.create, coroutine.resume
+local os_clock, os_date = os.clock, os.date
+local Vector2_new, Vector3_new, Vector3_one, Vector3_zero = Vector2.new, Vector3.new, Vector3.one, Vector3.zero
+local UDim2_new, UDim2_fromScale, UDim2_fromOffset, UDim_new = UDim2.new, UDim2.fromScale, UDim2.fromOffset, UDim.new
+local CFrame_Angles, CFrame_new = CFrame.Angles, CFrame.new
+local math_clamp, math_round, math_floor, math_huge, math_sin, math_cos, math_pi, math_min, math_deg, math_max, math_random = math.clamp, math.round, math.floor, math.huge, math.sin, math.cos, math.pi, math.min, math.deg, math.max, math.random
+local Drawing_new, Rect_new, Font_new, ColorSequence_new, ColorSequenceKeypoint_new, TweenInfo_new, NumberSequence_new, NumberSequenceKeypoint_new = Drawing.new, Rect.new, Font.new, ColorSequence.new, ColorSequenceKeypoint.new, TweenInfo.new, NumberSequence.new, NumberSequenceKeypoint.new
+local FindFirstChild, GetChildren, GetDescendants, WaitForChild, FindFirstChildWhichIsA, IsA = game.FindFirstChild, game.GetChildren, game.GetDescendants, game.WaitForChild, game.FindFirstChildWhichIsA, game.IsA
 
-local ScreenMinX, ScreenMinY, ScreenMaxX, ScreenMaxY = 0, 0, 0, 0;
+getgenv().ESP = {
+    Settings = {
+        Players = {
+            Enabled = true,
+            LocalPlayer = true,
 
-local CamRightX, CamRightY, CamRightZ = 0, 0, 0;
-local CamUpX, CamUpY, CamUpZ = 0, 0, 0;
-local CamLookX, CamLookY, CamLookZ = 0, 0, 0;
-local CamPosX, CamPosY, CamPosZ = 0, 0, 0;
-local FocalLength = 1;
-local HalfViewportX = 0;
-local HalfViewportY = 0;
+            Font = "Tahoma",
+            FontSize = 12,
+            FontType = "lowercase", -- uppercase, lowercase, none
 
-local GlowSliceRect = Rect.new(Vector2New(21, 21), Vector2New(79, 79));
-local ZeroCFrame = CFrameNew();
+            MaxDistance = math.huge,
+            RefreshRate = 60,
 
-local FontFace = Font.new("rbxasset://fonts/families/RobotoMono.json");
-local TahomaFontFace = Font.new("rbxasset://fonts/families/RobotoMono.json");
+            BoundingBox = {
+                Enabled = true,
+                DynamicBox = true, -- may drop fps
+                IncludeAccessories = false,
+                Type = "2D", -- 2D, Corner
+                
+                Rotation = 90,
+                Color = {Color3_fromRGB(216, 126, 157), Color3_fromRGB(216, 126, 157)},
+                Transparency = {0, 0},
 
-do
-    pcall(function()
-        local function LoadFont(FontName, FontWeight, FontStyle, AssetId, FontData)
-            if isfile(AssetId) then delfile(AssetId) end;
-            writefile(AssetId, FontData);
-            task.wait(0.1);
-            local FontFile = FontName .. ".font";
-            if isfile(FontFile) then delfile(FontFile) end;
-            writefile(FontFile, HttpService:JSONEncode({
-                name = FontName,
+                Glow = {
+                    Enabled = false,
+                    Rotation = 90,
+                    Color = {Color3_fromRGB(216, 126, 157), Color3_fromRGB(216, 126, 157)},
+                    Transparency = {0.75, 0.75},
+                },
+
+                Fill = {
+                    Enabled = true,
+                    Rotation = 90,
+                    Color = {Color3_fromRGB(216, 126, 157), Color3_fromRGB(216, 126, 157)},
+                    Transparency = {1, 0.5},
+                },
+            },
+
+            Bars = {
+                HealthBar = {
+                    Enabled = true,
+                    Position = "Left",
+                    Color = {Color3_fromRGB(131, 245, 78), Color3_fromRGB(255, 255, 0), Color3_fromRGB(252, 71, 77)},
+
+                    Type = function(Player, CharacterObjects)
+                        if not IsA(Player, "Player") then return end
+
+                        local Humanoid = CharacterObjects.Humanoid
+                        if not Humanoid then return end
+
+                        return Humanoid.Health / Humanoid.MaxHealth -- what value the bar follows
+                    end,
+
+                    Text = {
+                        Enabled = true,
+                        FollowBar = true,
+                        Ending = "",
+                        Position = "Left", -- // will ignore if FollowBar is true
+                        Color = Color3_fromRGB(255, 255, 255),
+                        Transparency = 0,
+
+                        Type = function(Player, CharacterObjects)
+                            if not IsA(Player, "Player") then return end
+
+                            local Humanoid = CharacterObjects.Humanoid
+                            if not Humanoid then return end
+
+                            return Humanoid.Health, Humanoid.Health ~= Humanoid.MaxHealth -- Value the text follows, Value the text turns visible if follow bar is on
+                        end,
+                    },
+                },
+
+                ArmorBar = {
+                    Enabled = true,
+                    Position = "Bottom",
+                    Color = {Color3_fromRGB(52, 131, 235), Color3_fromRGB(52, 131, 235), Color3_fromRGB(52, 131, 235)},
+
+                    Type = function(Player, CharacterObjects)
+                        if not IsA(Player, "Player") then return end
+
+                        local Humanoid = CharacterObjects.Humanoid
+                            if not Humanoid then return end
+
+                        return Humanoid.Health / Humanoid.MaxHealth -- what value the bar follows
+                    end,
+
+                    Text = {
+                        Enabled = true,
+                        FollowBar = true,
+                        Ending = "%",
+                        Position = "Left", -- // will ignore if FollowBar is true
+                        Color = Color3_fromRGB(255, 255, 255),
+                        Transparency = 0,
+
+                        Type = function(Player, CharacterObjects)
+                            if not IsA(Player, "Player") then return end
+
+                            local Humanoid = CharacterObjects.Humanoid
+                            if not Humanoid then return end
+
+                            return Humanoid.Health, Humanoid.Health ~= Humanoid.MaxHealth -- value the text follows, value the text turns visible if follow bar is on
+                        end,
+                    },
+                },
+            },
+
+            Chams = {
+                Enabled = true,
+                DepthMode = Enum.HighlightDepthMode.AlwaysOnTop,
+                Fill = {Color3_fromRGB(216, 126, 157), 0.5},
+                Outline = {Color3_fromRGB(0, 0, 0), 0.5},
+            },
+
+            Name = {
+                Enabled = true,
+                UseDisplay = true,
+                Position = "Top",
+                Color = Color3_fromRGB(255, 255, 255),
+                Transparency = 0,
+            },
+
+            Distance = {
+                Enabled = true,
+                Ending = "st",
+                Position = "Bottom",
+                Color = Color3_fromRGB(255, 255, 255),
+                Transparency = 0,
+            },
+
+            Weapon = {
+                Enabled = true,
+                Position = "Bottom",
+                Color = Color3_fromRGB(255, 255, 255),
+                Transparency = 0,
+            },
+
+            Flags = {
+                Enabled = true,
+                Position = "Right",
+                Color = Color3_fromRGB(255, 255, 255),
+                Transparency = 0,
+
+                Type = function(Player, CharacterObjects)
+                    local Flags = {}
+
+                    if not IsA(Player, "Player") then return Flags end
+
+                    local Humanoid = CharacterObjects.Humanoid
+                    if not Humanoid then return end
+
+                    if Humanoid.MoveDirection.Magnitude > 0 then
+                        table_insert(Flags, "moving")
+                    end
+
+                    if Humanoid.Jump then
+                        table_insert(Flags, "jumping")
+                    end
+
+                    return Flags -- return a table for it to work
+                end
+            },
+        },
+    },
+
+    Connections = {},
+    Errors = {},
+    Objects = {},
+    Targets = {},
+    Folder = "ESP",
+    Font = nil,
+    Holder = nil,
+}
+
+local Client = Players.LocalPlayer
+local Camera = FindFirstChildWhichIsA(Workspace, "Camera")
+local Viewport = Camera.ViewportSize
+local ConnectionsTable = ESP.Connections
+local ObjectsTable = ESP.Objects
+local DrawingsTable = ESP.Drawings
+local FolderLocation = ESP.Folder
+local ESPErrors = ESP.Errors
+local ESPSettings = ESP.Settings
+local WorldToViewportPoint = Camera.WorldToViewportPoint
+local ExecutorName = getexecutorname()
+
+local function P(p)
+    return p:gsub("\\", "/")
+end
+
+do 
+    local baseFolder = P(FolderLocation)
+    local fontsFolder = P(FolderLocation .. "/Fonts")
+
+    if not isfolder(baseFolder) then
+        makefolder(baseFolder)
+    end
+
+    if not isfolder(fontsFolder) then
+        makefolder(fontsFolder)
+    end
+end
+
+local FontsToDownload = {
+    ["Tahoma"] = {Link = "https://github.com/LuckyHub1/LuckyHub/raw/main/zekton_rg.ttf"},
+    ["Minecraftia"] = {Link = "https://github.com/LuckyHub1/LuckyHub/raw/refs/heads/main/Minecraftia.ttf"},
+    ["Silkscreen"] = {Link = "https://github.com/LuckyHub1/LuckyHub/raw/refs/heads/main/Silkscreen.ttf"},
+}
+
+do -- Fonts
+    local fontsFolder = P(FolderLocation .. "/Fonts")
+
+    for Name, Table in FontsToDownload do
+        local ttfPath  = P(fontsFolder .. "/" .. Name .. ".ttf")
+        local fontPath = P(fontsFolder .. "/" .. Name .. ".font")
+
+        if not isfile(ttfPath) then
+            pcall(writefile, ttfPath, game:HttpGet(Table.Link))
+        end
+        
+        if not isfile(fontPath) or ExecutorName == "Potassium" then
+            local Config = {
+                name = Name,
                 faces = {{
                     name = "Regular",
-                    weight = FontWeight,
-                    style = FontStyle,
-                    assetId = getcustomasset(AssetId),
-                }},
-            }));
-            task.wait(0.1);
-            return getcustomasset(FontFile);
-        end;
-
-        local Base64Data = game:HttpGet(
-            "https://gist.githubusercontent.com/index987745/cbe1120f297fc9e7a31568f290a36c30/raw/6dbbb378feffbebb2af51cc8b0125b837f590f7a/SmallestPixel.tff"
-        );
-        FontFace = Font.new(
-            LoadFont("SmallestPixel.ttf", 100, "normal", "SmallestPixelAsset.ttf", crypt.base64.decode(Base64Data))
-        );
-
-        local TahomaData = game:HttpGet(
-            "https://github.com/f1nobe7650/Nebula/raw/refs/heads/main/fs-tahoma-8px.ttf"
-        );
-        TahomaFontFace = Font.new(
-            LoadFont("Tahoma.ttf", 400, "normal", "TahomaAsset.ttf", TahomaData)
-        );
-    end);
-end;
-
-
-local function GetActiveFont()
-    return Settings.Font == "Tahoma" and TahomaFontFace or FontFace;
-end;
-
-local function GetFontSize()
-    return Settings.FontSize or 12;
-end;
-
-local function FormatText(Text)
-    if Settings.FontType == "uppercase" then return string.upper(Text); end;
-    if Settings.FontType == "lowercase" then return string.lower(Text); end;
-    return Text;
-end;
-
-local BarWidth = 1;
-local BarGap = 4;
-local BarPad = 1;
-local BarWidth2 = BarWidth + 2;
-local BarPad2 = BarPad * 2;
-local BarGapW = BarGap + BarWidth;
-
-local ArmorBarHeight = 1;
-local ArmorBarHeight2 = ArmorBarHeight + 2;
-local ArmorBarGap = 4;
-local ArmorBarPad = 1;
-
-local HpGradient = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Settings.Bars.HealthBar.Color[1]),
-    ColorSequenceKeypoint.new(0.5, Settings.Bars.HealthBar.Color[2]),
-    ColorSequenceKeypoint.new(1, Settings.Bars.HealthBar.Color[3]),
-});
-
-local ArmorGradient = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Settings.Bars.ArmorBar.Color[1]),
-    ColorSequenceKeypoint.new(0.5, Settings.Bars.ArmorBar.Color[2]),
-    ColorSequenceKeypoint.new(1, Settings.Bars.ArmorBar.Color[3]),
-});
-
-local FillGradient = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Settings.Box.Fill.Color[1]),
-    ColorSequenceKeypoint.new(1, Settings.Box.Fill.Color[2]),
-});
-
-local BoxGradient = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Settings.Box.Color[1]),
-    ColorSequenceKeypoint.new(1, Settings.Box.Color[2]),
-});
-
-local GlowFadeTop = NumberSequence.new({
-    NumberSequenceKeypoint.new(0, 0),
-    NumberSequenceKeypoint.new(0.5, Settings.Box.Glow.Transparency[1]),
-    NumberSequenceKeypoint.new(1, 1),
-});
-
-local GlowFadeBot = NumberSequence.new({
-    NumberSequenceKeypoint.new(0, 1),
-    NumberSequenceKeypoint.new(0.5, Settings.Box.Glow.Transparency[2]),
-    NumberSequenceKeypoint.new(1, 0),
-});
-
-local R15Parts = {
-    "Head", "UpperTorso", "LowerTorso",
-    "LeftUpperArm", "LeftLowerArm", "LeftHand",
-    "RightUpperArm", "RightLowerArm", "RightHand",
-    "LeftUpperLeg", "LeftLowerLeg", "LeftFoot",
-    "RightUpperLeg", "RightLowerLeg", "RightFoot",
-};
-
-local R6Parts = {
-    "Head", "Torso",
-    "Left Arm", "Right Arm",
-    "Left Leg", "Right Leg",
-};
-
-local R15Padding = {
-    Head = 0.05,
-    LeftHand = 0.02, RightHand = 0.02,
-    LeftFoot = 0.03, RightFoot = 0.03,
-};
-
-local R6Padding = {
-    Head = 0.05,
-    Torso = 0,
-    ["Left Arm"] = 0, ["Right Arm"] = 0,
-    ["Left Leg"] = 0.04, ["Right Leg"] = 0.04,
-};
-
-local BodyPartNames = {
-    Head = true, LeftHand = true, RightHand = true, LeftFoot = true, RightFoot = true,
-    ["Left Arm"] = true, ["Right Arm"] = true,
-    Torso = true,
-    ["Left Leg"] = true, ["Right Leg"] = true,
-};
-
-local Esp = { Cache = {}, List = {}, Connections = {}, Object = {} };
-
-do
-    Esp.ScreenGui = InstanceNew("ScreenGui");
-    Esp.ScreenGui.Name = "\0";
-    Esp.ScreenGui.ResetOnSpawn = false;
-    Esp.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling;
-    Esp.ScreenGui.IgnoreGuiInset = true;
-    Esp.ScreenGui.Parent = gethui();
-
-    local function MakeInstance(ClassName, Properties)
-        local Object = InstanceNew(ClassName);
-        for Key, Value in pairs(Properties) do Object[Key] = Value; end;
-        return Object;
-    end;
-
-    do
-        function Esp.Object.StrokeSolid(Parent, Color, ZIndex)
-            local Frame = MakeInstance("Frame", {
-                BackgroundTransparency = 1,
-                BorderSizePixel = 0,
-                ZIndex = ZIndex,
-                Visible = false,
-                Size = UDim2New(0, 0, 0, 0),
-                Parent = Parent,
-            });
-            MakeInstance("UIStroke", {
-                Color = Color,
-                Thickness = 1,
-                LineJoinMode = Enum.LineJoinMode.Miter,
-                ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-                Transparency = 0,
-                Parent = Frame,
-            });
-            return Frame;
-        end;
-
-        function Esp.Object.StrokeGradient(Parent, ZIndex)
-            local Frame = MakeInstance("Frame", {
-                BackgroundTransparency = 1,
-                BorderSizePixel = 0,
-                ZIndex = ZIndex,
-                Visible = false,
-                Size = UDim2New(0, 0, 0, 0),
-                Parent = Parent,
-            });
-            local Stroke = MakeInstance("UIStroke", {
-                Color = Color3New(1, 1, 1),
-                Thickness = 1,
-                LineJoinMode = Enum.LineJoinMode.Miter,
-                ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-                Parent = Frame,
-            });
-            MakeInstance("UIGradient", {
-                Color = BoxGradient,
-                Rotation = Settings.Box.Rotation,
-                Parent = Stroke,
-            });
-            return Frame;
-        end;
-
-        function Esp.Object.InnerCover(Parent, ZIndex)
-            return MakeInstance("Frame", {
-                BackgroundColor3 = ColorBlack,
-                BackgroundTransparency = 1,
-                BorderSizePixel = 0,
-                ZIndex = ZIndex,
-                Visible = false,
-                Size = UDim2New(0, 0, 0, 0),
-                Parent = Parent,
-            });
-        end;
-
-        function Esp.Object.Frame(Parent, Color, ZIndex)
-            return MakeInstance("Frame", {
-                BackgroundColor3 = Color,
-                BackgroundTransparency = 0,
-                BorderSizePixel = 0,
-                ZIndex = ZIndex,
-                Visible = false,
-                Size = UDim2New(0, 0, 0, 0),
-                Parent = Parent,
-            });
-        end;
-
-        function Esp.Object.Label(Parent, ZIndex, Color, Size)
-            local Label = MakeInstance("TextLabel", {
-                BackgroundTransparency = 1,
-                BorderSizePixel = 0,
-                ClipsDescendants = false,
-                ZIndex = ZIndex,
-                Visible = false,
-                Size = UDim2New(0, 300, 0, Size + 4),
-                AnchorPoint = Vector2New(0.5, 0),
-                Position = UDim2New(0, -9999, 0, -9999),
-                FontFace = GetActiveFont(),
-                TextSize = Size,
-                TextColor3 = Color,
-                TextStrokeTransparency = 1,
-                TextXAlignment = Enum.TextXAlignment.Center,
-                TextYAlignment = Enum.TextYAlignment.Top,
-                TextTruncate = Enum.TextTruncate.None,
-                TextScaled = false,
-                RichText = false,
-                Text = "",
-                Parent = Parent,
-            });
-            MakeInstance("UIStroke", {
-                Color = ColorBlack,
-                Thickness = 1,
-                LineJoinMode = Enum.LineJoinMode.Miter,
-                ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual,
-                Transparency = 0,
-                Parent = Label,
-            });
-            return Label;
-        end;
-
-        function Esp.Object.LabelLeft(Parent, ZIndex, Color, Size)
-            local Label = MakeInstance("TextLabel", {
-                BackgroundTransparency = 1,
-                BorderSizePixel = 0,
-                ClipsDescendants = false,
-                ZIndex = ZIndex,
-                Visible = false,
-                Size = UDim2New(0, 300, 0, Size + 4),
-                AnchorPoint = Vector2New(0, 0),
-                Position = UDim2New(0, -9999, 0, -9999),
-                FontFace = GetActiveFont(),
-                TextSize = Size,
-                TextColor3 = Color,
-                TextStrokeTransparency = 1,
-                TextXAlignment = Enum.TextXAlignment.Left,
-                TextYAlignment = Enum.TextYAlignment.Top,
-                TextTruncate = Enum.TextTruncate.None,
-                TextScaled = false,
-                RichText = false,
-                Text = "",
-                Parent = Parent,
-            });
-            MakeInstance("UIStroke", {
-                Color = ColorBlack,
-                Thickness = 1,
-                LineJoinMode = Enum.LineJoinMode.Miter,
-                ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual,
-                Transparency = 0,
-                Parent = Label,
-            });
-            return Label;
-        end;
-
-        function Esp.Object.Fill(Parent, ZIndex)
-            local Frame = MakeInstance("Frame", {
-                BackgroundColor3 = ColorWhite,
-                BackgroundTransparency = 0,
-                BorderSizePixel = 0,
-                ZIndex = ZIndex,
-                Visible = false,
-                Size = UDim2New(0, 0, 0, 0),
-                AnchorPoint = Vector2New(0, 0),
-                Parent = Parent,
-            });
-            MakeInstance("UIGradient", {
-                Color = FillGradient,
-                Rotation = Settings.Box.Fill.Rotation,
-                Transparency = NumberSequence.new({
-                    NumberSequenceKeypoint.new(0, Settings.Box.Fill.Transparency[1]),
-                    NumberSequenceKeypoint.new(1, Settings.Box.Fill.Transparency[2]),
-                }),
-                Parent = Frame,
-            });
-            return Frame;
-        end;
-
-        function Esp.Object.Glow(Parent, Color, Fade)
-            local Image = MakeInstance("ImageLabel", {
-                Image = "rbxassetid://18245826428",
-                ImageColor3 = Color,
-                ImageTransparency = Settings.Box.Glow.Transparency[1],
-                ScaleType = Enum.ScaleType.Slice,
-                SliceCenter = GlowSliceRect,
-                BackgroundTransparency = 1,
-                BorderSizePixel = 0,
-                ZIndex = 2,
-                Visible = false,
-                Size = UDim2New(0, 0, 0, 0),
-                Parent = Parent,
-            });
-            MakeInstance("UIGradient", {
-                Transparency = Fade,
-                Rotation = Settings.Box.Glow.Rotation,
-                Parent = Image,
-            });
-            return Image;
-        end;
-
-        function Esp.Object.BarFill(Parent)
-            local Frame = MakeInstance("Frame", {
-                BackgroundColor3 = ColorWhite,
-                BackgroundTransparency = 0,
-                BorderSizePixel = 0,
-                ZIndex = 11,
-                Visible = false,
-                Size = UDim2New(0, 0, 0, 0),
-                Parent = Parent,
-            });
-            MakeInstance("UIGradient", {
-                Color = HpGradient,
-                Rotation = 270,
-                Parent = Frame,
-            });
-            return Frame;
-        end;
-
-        function Esp.Object.ArmorBarFill(Parent)
-            local Frame = MakeInstance("Frame", {
-                BackgroundColor3 = ColorWhite,
-                BackgroundTransparency = 0,
-                BorderSizePixel = 0,
-                ZIndex = 11,
-                Visible = false,
-                Size = UDim2New(0, 0, 0, 0),
-                Parent = Parent,
-            });
-            MakeInstance("UIGradient", {
-                Color = ArmorGradient,
-                Rotation = 0,
-                Parent = Frame,
-            });
-            return Frame;
-        end;
-
-        function Esp.Object.Highlight(ParentModel)
-            if not Settings.Highlight.Enabled then return nil; end;
-            local Highlight = InstanceNew("Highlight");
-            Highlight.FillColor = Settings.Highlight.FillColor;
-            Highlight.OutlineColor = Settings.Highlight.OutlineColor;
-            Highlight.FillTransparency = Settings.Highlight.FillTransparency;
-            Highlight.OutlineTransparency = Settings.Highlight.OutlineTransparency;
-            Highlight.DepthMode = Settings.Highlight.DepthMode;
-            Highlight.Adornee = ParentModel;
-            Highlight.Parent = Esp.ScreenGui;
-            return Highlight;
-        end;
-    end;
-
-    do
-        function Esp.ExpandScreenBounds(Depth, Right, Up)
-            if Depth <= 0 then return; end;
-            local Inv = FocalLength / Depth;
-            local Sx = HalfViewportX + Right * Inv;
-            local Sy = HalfViewportY - Up * Inv;
-            if Sx < ScreenMinX then ScreenMinX = Sx end;
-            if Sx > ScreenMaxX then ScreenMaxX = Sx end;
-            if Sy < ScreenMinY then ScreenMinY = Sy end;
-            if Sy > ScreenMaxY then ScreenMaxY = Sy end;
-        end;
-
-        function Esp.ProjectObb(Px, Py, Pz, R00, R01, R02, R10, R11, R12, R20, R21, R22, HalfW, HalfH, HalfD)
-            local Ax = R00 * HalfW; local Ay = R01 * HalfW; local Az = R02 * HalfW;
-            local Bx = R10 * HalfH; local By = R11 * HalfH; local Bz = R12 * HalfH;
-            local Cx = R20 * HalfD; local Cy = R21 * HalfD; local Cz = R22 * HalfD;
-
-            local Dx = Px - CamPosX;
-            local Dy = Py - CamPosY;
-            local Dz = Pz - CamPosZ;
-
-            local Od = CamLookX * Dx + CamLookY * Dy + CamLookZ * Dz;
-            local Or_ = CamRightX * Dx + CamRightY * Dy + CamRightZ * Dz;
-            local Ou = CamUpX * Dx + CamUpY * Dy + CamUpZ * Dz;
-
-            local Ad = CamLookX * Ax + CamLookY * Ay + CamLookZ * Az;
-            local Ar = CamRightX * Ax + CamRightY * Ay + CamRightZ * Az;
-            local Au = CamUpX * Ax + CamUpY * Ay + CamUpZ * Az;
-
-            local Bd = CamLookX * Bx + CamLookY * By + CamLookZ * Bz;
-            local Br = CamRightX * Bx + CamRightY * By + CamRightZ * Bz;
-            local Bu = CamUpX * Bx + CamUpY * By + CamUpZ * Bz;
-
-            local Cd = CamLookX * Cx + CamLookY * Cy + CamLookZ * Cz;
-            local Cr = CamRightX * Cx + CamRightY * Cy + CamRightZ * Cz;
-            local Cu = CamUpX * Cx + CamUpY * Cy + CamUpZ * Cz;
-
-            Esp.ExpandScreenBounds(Od + Ad + Bd + Cd, Or_ + Ar + Br + Cr, Ou + Au + Bu + Cu);
-            Esp.ExpandScreenBounds(Od + Ad + Bd - Cd, Or_ + Ar + Br - Cr, Ou + Au + Bu - Cu);
-            Esp.ExpandScreenBounds(Od + Ad - Bd + Cd, Or_ + Ar - Br + Cr, Ou + Au - Bu + Cu);
-            Esp.ExpandScreenBounds(Od + Ad - Bd - Cd, Or_ + Ar - Br - Cr, Ou + Au - Bu - Cu);
-            Esp.ExpandScreenBounds(Od - Ad + Bd + Cd, Or_ - Ar + Br + Cr, Ou - Au + Bu + Cu);
-            Esp.ExpandScreenBounds(Od - Ad + Bd - Cd, Or_ - Ar + Br - Cr, Ou - Au + Bu - Cu);
-            Esp.ExpandScreenBounds(Od - Ad - Bd + Cd, Or_ - Ar - Br + Cr, Ou - Au - Bu + Cu);
-            Esp.ExpandScreenBounds(Od - Ad - Bd - Cd, Or_ - Ar - Br - Cr, Ou - Au - Bu - Cu);
-        end;
-    end;
-
-    do
-        function Esp.EntryNew(Player)
-            local Container = InstanceNew("Frame");
-            Container.Name = ToString(Player) .. "_esp";
-            Container.BackgroundTransparency = 1;
-            Container.BorderSizePixel = 0;
-            Container.Size = UDim2New(1, 0, 1, 0);
-            Container.ZIndex = 1;
-            Container.Parent = Esp.ScreenGui;
-
-            local FontSize = GetFontSize();
-
-            return {
-                Player = Player,
-                PlayerName = Player.Name,
-                Container = Container,
-
-                OuterStroke = Esp.Object.StrokeSolid(Container, ColorBlack, 4),
-                BorderStroke = Esp.Object.StrokeGradient(Container, 5),
-                InnerCover = Esp.Object.InnerCover(Container, 6),
-                InnerStroke = Esp.Object.StrokeSolid(Container, ColorBlack, 7),
-                BoxFill = Esp.Object.Fill(Container, 8),
-
-                BarOutline = Esp.Object.Frame(Container, ColorBlack, 9),
-                BarBackground = Esp.Object.Frame(Container, Color3FromRGB(5, 10, 25), 10),
-                BarFill = Esp.Object.BarFill(Container),
-
-                ArmorOutline = Esp.Object.Frame(Container, ColorBlack, 9),
-                ArmorBackground = Esp.Object.Frame(Container, Color3FromRGB(5, 10, 25), 10),
-                ArmorFill = Esp.Object.ArmorBarFill(Container),
-
-                GlowTop = Esp.Object.Glow(Container, Settings.Box.Glow.Color[1], GlowFadeTop),
-                GlowBot = Esp.Object.Glow(Container, Settings.Box.Glow.Color[2], GlowFadeBot),
-                LabelHp = Esp.Object.Label(Container, 12, Settings.Bars.HealthBar.Text.Color, FontSize),
-                LabelName = Esp.Object.Label(Container, 12, Settings.Name.Color, FontSize),
-                LabelWeapon = Esp.Object.Label(Container, 12, Settings.Weapon.Color, FontSize),
-                LabelDist = Esp.Object.Label(Container, 12, Settings.Distance.Color, FontSize),
-                LabelFlags = Esp.Object.LabelLeft(Container, 12, Settings.Flags.Color, FontSize),
-
-                Highlight = nil,
-
-                Character = nil,
-                RootPart = nil,
-                Humanoid = nil,
-                IsDead = false,
-                IsR6 = false,
-
-                Health = 1,
-                MaxHealth = 100,
-                Armor = 1,
-                MaxArmor = 100,
-
-                TopOffset = 3.0,
-                BotOffset = 3.0,
-
-                Parts = {},
-                PartHalfW = {},
-                PartHalfH = {},
-                PartHalfD = {},
-                PartCount = 0,
-
-                CachedMoveSpeed = 0,
-                CachedJumping = false,
-
-                IsVisible = false,
-
-                BoxX = 0, BoxY = 0, BoxW = 0, BoxH = 0,
-
-                PrevBoxX = -1, PrevBoxY = -1, PrevBoxW = -1, PrevBoxH = -1,
-
-                PrevFillH = -1,
-                PrevArmorFillW = -1,
-                PrevHpStr = "",
-                PrevNameStr = "",
-                PrevWeaponStr = "__unset__",
-                PrevDistStr = "",
-                PrevFlagsStr = "",
-
-                PrevHpLabelX = -1, PrevHpLabelY = -1,
-                PrevNmLabelX = -1, PrevNmLabelY = -1,
-                PrevWpLabelX = -1, PrevWpLabelY = -1,
-                PrevDtLabelX = -1, PrevDtLabelY = -1,
-                PrevDistance = -1,
-                PrevFlLabelX = -1, PrevFlLabelY = -1,
-
-                BarX = 0, BarY = 0, BarH = 0,
-                BarLabelX = 0, BarLabelY = 0,
-
-                ArmorBarX = 0, ArmorBarY = 0, ArmorBarW = 0,
-
-                FlagsLabelX = 0, FlagsLabelY = 0,
-
-                HpString = "100",
-                WeaponString = "none",
-                FlagsString = "",
-
-                PlayerConnections = {},
-                CharacterConnections = {},
-            };
-        end;
-
-        function Esp.EntryHide(Entry)
-            Entry.OuterStroke.Visible = false;
-            Entry.BorderStroke.Visible = false;
-            Entry.InnerCover.Visible = false;
-            Entry.InnerStroke.Visible = false;
-            Entry.BoxFill.Visible = false;
-            Entry.BarOutline.Visible = false;
-            Entry.BarBackground.Visible = false;
-            Entry.BarFill.Visible = false;
-            Entry.ArmorOutline.Visible = false;
-            Entry.ArmorBackground.Visible = false;
-            Entry.ArmorFill.Visible = false;
-            Entry.GlowTop.Visible = false;
-            Entry.GlowBot.Visible = false;
-            Entry.LabelHp.Visible = false;
-            Entry.LabelName.Visible = false;
-            Entry.LabelWeapon.Visible = false;
-            Entry.LabelDist.Visible = false;
-            Entry.LabelFlags.Visible = false;
-            Entry.IsVisible = false;
-
-            if Entry.Highlight then
-                Entry.Highlight.Enabled = false;
-            end;
-
-            Entry.PrevBoxX = -1; Entry.PrevBoxY = -1; Entry.PrevBoxW = -1; Entry.PrevBoxH = -1;
-            Entry.PrevFillH = -1;
-            Entry.PrevArmorFillW = -1;
-            Entry.PrevHpStr = ""; Entry.PrevNameStr = ""; Entry.PrevWeaponStr = "__unset__";
-            Entry.PrevDistStr = ""; Entry.PrevFlagsStr = "";
-            Entry.PrevHpLabelX = -1; Entry.PrevHpLabelY = -1;
-            Entry.PrevNmLabelX = -1; Entry.PrevNmLabelY = -1;
-            Entry.PrevWpLabelX = -1; Entry.PrevWpLabelY = -1;
-            Entry.PrevDtLabelX = -1; Entry.PrevDtLabelY = -1;
-            Entry.PrevDistance = -1;
-            Entry.PrevFlLabelX = -1; Entry.PrevFlLabelY = -1;
-        end;
-
-        function Esp.EntryDestroy(Entry)
-            Esp.EntryHide(Entry);
-            for _, Connection in ipairs(Entry.PlayerConnections) do pcall(Connection.Disconnect, Connection); end;
-            for _, Connection in ipairs(Entry.CharacterConnections) do pcall(Connection.Disconnect, Connection); end;
-            if Entry.Highlight then pcall(Entry.Highlight.Destroy, Entry.Highlight); end;
-            pcall(Entry.Container.Destroy, Entry.Container);
-        end;
-
-        function Esp.EntryBuild(Entry)
-            local Character = Entry.Character;
-            if not Character then return; end;
-
-            local PartList = Entry.IsR6 and R6Parts or R15Parts;
-            local PaddingMap = Entry.IsR6 and R6Padding or R15Padding;
-            local RootY = Entry.RootPart.Position.Y;
-            local LowestY = MathHuge;
-            local HighestY = -MathHuge;
-
-            local Parts = {};
-            local HalfWList = {};
-            local HalfHList = {};
-            local HalfDList = {};
-            local Count = 0;
-
-            for i = 1, #PartList do
-                local Part = Character:FindFirstChild(PartList[i]);
-                if not Part or not Part:IsA("BasePart") then continue; end;
-
-                local Padding = PaddingMap[PartList[i]] or 0.04;
-                local PartSize = Part.Size;
-                local HalfW = PartSize.X * 0.5 + Padding;
-                local HalfH = PartSize.Y * 0.5;
-                local HalfD = PartSize.Z * 0.5 + Padding;
-                local LocalY = Part.Position.Y - RootY;
-
-                if LocalY + HalfH > HighestY then HighestY = LocalY + HalfH; end;
-                if LocalY - HalfH < LowestY then LowestY = LocalY - HalfH; end;
-
-                Count = Count + 1;
-                Parts[Count] = Part;
-                HalfWList[Count] = HalfW;
-                HalfHList[Count] = HalfH;
-                HalfDList[Count] = HalfD;
-            end;
-
-            Entry.TopOffset = (HighestY == -MathHuge) and 3.0 or HighestY + 0.08;
-            Entry.BotOffset = (LowestY == MathHuge) and 3.0 or -LowestY + 0.08;
-            Entry.Parts = Parts;
-            Entry.PartHalfW = HalfWList;
-            Entry.PartHalfH = HalfHList;
-            Entry.PartHalfD = HalfDList;
-            Entry.PartCount = Count;
-        end;
-
-        function Esp.EntryClear(Entry)
-            for _, Connection in ipairs(Entry.CharacterConnections) do pcall(Connection.Disconnect, Connection); end;
-            Entry.CharacterConnections = {};
-            Entry.Character = nil;
-            Entry.RootPart = nil;
-            Entry.Humanoid = nil;
-            Entry.IsDead = false;
-            Entry.Parts = {};
-            Entry.PartHalfW = {};
-            Entry.PartHalfH = {};
-            Entry.PartHalfD = {};
-            Entry.PartCount = 0;
-            Entry.HpString = "100";
-            Entry.WeaponString = "none";
-            Entry.FlagsString = "";
-            Entry.CachedMoveSpeed = 0;
-            Entry.CachedJumping = false;
-
-            if Entry.Highlight then
-                pcall(Entry.Highlight.Destroy, Entry.Highlight);
-                Entry.Highlight = nil;
-            end;
-        end;
-
-        function Esp.GetEquippedWeapon(Character)
-            local Tool = Character:FindFirstChildOfClass("Tool");
-            return Tool and Tool.Name or "none";
-        end;
-
-        local function RebuildFlags(Entry)
-            if Settings.Flags.Type then
-                local Result = Settings.Flags.Type(Entry.CachedMoveSpeed, Entry.CachedJumping);
-                if type(Result) == "table" then
-                    Entry.FlagsString = (#Result > 0) and table.concat(Result, ", ") or "";
-                    Entry.PrevFlagsStr = "";
-                end;
-            end;
-        end;
-
-        function Esp.EntryLink(Entry, Character)
-            Esp.EntryClear(Entry);
-            Esp.EntryHide(Entry);
-            if not Character then return; end;
-
-            local RootPart = Character:WaitForChild("HumanoidRootPart", 10);
-            local Humanoid = Character:WaitForChild("Humanoid", 10);
-            if not RootPart or not Humanoid then return; end;
-
-            if not Character:FindFirstChild("UpperTorso") and not Character:FindFirstChild("Torso") then
-                task.wait(0.5);
-            end;
-
-            Entry.IsR6 = Character:FindFirstChild("Torso") ~= nil;
-            Entry.Character = Character;
-            Entry.RootPart = RootPart;
-            Entry.Humanoid = Humanoid;
-            Entry.IsDead = false;
-            Entry.MaxHealth = Humanoid.MaxHealth;
-            Entry.Health = MathClamp(Humanoid.Health / Humanoid.MaxHealth, 0, 1);
-            Entry.HpString = ToString(MathFloor(Humanoid.Health));
-
-            Entry.CachedMoveSpeed = Humanoid.MoveDirection.Magnitude;
-            Entry.CachedJumping = Humanoid.Jump;
-
-            Entry.WeaponString = Esp.GetEquippedWeapon(Character);
-            RebuildFlags(Entry);
-
-            if Settings.Highlight.Enabled then
-                if Entry.Highlight then
-                    pcall(Entry.Highlight.Destroy, Entry.Highlight);
-                end;
-                Entry.Highlight = Esp.Object.Highlight(Character);
-                Entry.Highlight.Enabled = true;
-            end;
-
-            local CharConns = Entry.CharacterConnections;
-
-            CharConns[#CharConns + 1] = Humanoid.HealthChanged:Connect(function(NewHp)
-                Entry.Health = MathClamp(NewHp / Entry.MaxHealth, 0, 1);
-                Entry.HpString = ToString(MathFloor(NewHp));
-                Entry.PrevFillH = -1;
-                Entry.PrevHpStr = "";
-            end);
-
-            CharConns[#CharConns + 1] = Humanoid:GetPropertyChangedSignal("MaxHealth"):Connect(function()
-                Entry.MaxHealth = Humanoid.MaxHealth;
-            end);
-
-            CharConns[#CharConns + 1] = Humanoid.Died:Connect(function()
-                Entry.IsDead = true;
-                if Entry.Highlight then Entry.Highlight.Enabled = false; end;
-                Esp.EntryHide(Entry);
-            end);
-
-            CharConns[#CharConns + 1] = Humanoid.StateChanged:Connect(function(_, NewState)
-                Entry.CachedJumping = (
-                    NewState == Enum.HumanoidStateType.Jumping or
-                    NewState == Enum.HumanoidStateType.Freefall
-                );
-                RebuildFlags(Entry);
-            end);
-
-            CharConns[#CharConns + 1] = Humanoid.Running:Connect(function(Speed)
-                Entry.CachedMoveSpeed = Speed;
-                RebuildFlags(Entry);
-            end);
-
-            CharConns[#CharConns + 1] = Character.ChildAdded:Connect(function(Child)
-                if Child:IsA("Tool") then
-                    Entry.WeaponString = Child.Name;
-                    Entry.PrevWeaponStr = "__unset__";
-                end;
-            end);
-
-            CharConns[#CharConns + 1] = Character.ChildRemoved:Connect(function(Child)
-                if Child:IsA("Tool") then
-                    Entry.WeaponString = Esp.GetEquippedWeapon(Character);
-                    Entry.PrevWeaponStr = "__unset__";
-                end;
-            end);
-
-            CharConns[#CharConns + 1] = Character.DescendantAdded:Connect(function(Desc)
-                if not Desc:IsA("BasePart") or not BodyPartNames[Desc.Name] then return; end;
-                local Parent = Desc.Parent;
-                while Parent and Parent ~= Character do
-                    if Parent:IsA("Tool") then return; end;
-                    Parent = Parent.Parent;
-                end;
-                task.defer(Esp.EntryBuild, Entry);
-            end);
-
-            CharConns[#CharConns + 1] = Character.DescendantRemoving:Connect(function(Desc)
-                if Desc:IsA("BasePart") and BodyPartNames[Desc.Name] then
-                    task.defer(Esp.EntryBuild, Entry);
-                end;
-            end);
-
-            Esp.EntryBuild(Entry);
-        end;
-    end;
-
-    do
-        function Esp.Add(Player)
-            if Player == LocalPlayer then return; end;
-            if Esp.Cache[Player] then Esp.EntryDestroy(Esp.Cache[Player]); end;
-
-            local Entry = Esp.EntryNew(Player);
-            Esp.Cache[Player] = Entry;
-            local List = Esp.List;
-            List[#List + 1] = Entry;
-
-            local PlayerConns = Entry.PlayerConnections;
-
-            PlayerConns[#PlayerConns + 1] = Player.CharacterAdded:Connect(function(NewCharacter)
-                task.spawn(Esp.EntryLink, Entry, NewCharacter);
-            end);
-
-            PlayerConns[#PlayerConns + 1] = Player.CharacterRemoving:Connect(function()
-                Entry.Character = nil;
-                Entry.RootPart = nil;
-                if Entry.Highlight then Entry.Highlight.Enabled = false; end;
-                Esp.EntryHide(Entry);
-            end);
-
-            if Player.Character then
-                task.spawn(Esp.EntryLink, Entry, Player.Character);
-            end;
-        end;
-
-        function Esp.Remove(Player)
-            local Entry = Esp.Cache[Player];
-            if not Entry then return; end;
-
-            Esp.Cache[Player] = nil;
-
-            local List = Esp.List;
-            for i = 1, #List do
-                if List[i] == Entry then
-                    List[i] = List[#List];
-                    List[#List] = nil;
-                    break;
-                end;
-            end;
-
-            Esp.EntryDestroy(Entry);
-        end;
-    end;
-
-    do
-        local function OnLocalCharacter(Character)
-            Esp.LocalPlayerRoot = Character and Character:WaitForChild("HumanoidRootPart", 5) or nil;
-        end;
-
-        if LocalPlayer.Character then
-            task.spawn(OnLocalCharacter, LocalPlayer.Character);
-        end;
-
-        Esp.Connections[#Esp.Connections + 1] = LocalPlayer.CharacterAdded:Connect(OnLocalCharacter);
-        Esp.Connections[#Esp.Connections + 1] = LocalPlayer.CharacterRemoving:Connect(function()
-            Esp.LocalPlayerRoot = nil;
-        end);
-    end;
-
-    do
-        local TextOffsets = {
-            Name = -18,
-            Weapon = 19,
-            Distance = 8,
-            Health = -3,
-            Flags = -2,
-        };
-
-        local BoxEnabled = Settings.Box.Enabled;
-        local FillEnabled = Settings.Box.Fill.Enabled;
-        local GlowEnabled = Settings.Box.Glow.Enabled;
-        local BarEnabled = Settings.Bars.HealthBar.Enabled;
-        local ArmorEnabled = Settings.Bars.ArmorBar.Enabled;
-        local ArmorTypeFn = Settings.Bars.ArmorBar.Type;
-        local HpTextEnabled = Settings.Bars.HealthBar.Text.Enabled;
-        local NameEnabled = Settings.Name.Enabled;
-        local WeaponEnabled = Settings.Weapon.Enabled;
-        local WeaponShowNone = Settings.Weapon.ShowNone;
-        local DistEnabled = Settings.Distance.Enabled;
-        local FlagsEnabled = Settings.Flags.Enabled;
-
-        local FontSize = GetFontSize();
-        local NameOffset = TextOffsets.Name;
-        local WeaponOffset = TextOffsets.Weapon;
-        local DistOffset = TextOffsets.Distance;
-        local HpOffset = TextOffsets.Health;
-        local FlagsOffset = TextOffsets.Flags;
-
-        local DeltaAccum = 0;
-
-        Esp.Connections[#Esp.Connections + 1] = RunService.RenderStepped:Connect(function(DeltaTime)
-            DeltaAccum = DeltaAccum + DeltaTime;
-            if DeltaAccum < TargetFrametime then return; end;
-            DeltaAccum = DeltaAccum - TargetFrametime;
-
-            local CamCframe = Camera.CFrame;
-            local ViewportSize = Camera.ViewportSize;
-
-            local RightVector = CamCframe.RightVector;
-            CamRightX = RightVector.X; CamRightY = RightVector.Y; CamRightZ = RightVector.Z;
-
-            local UpVector = CamCframe.UpVector;
-            CamUpX = UpVector.X; CamUpY = UpVector.Y; CamUpZ = UpVector.Z;
-
-            local LookVector = CamCframe.LookVector;
-            CamLookX = LookVector.X; CamLookY = LookVector.Y; CamLookZ = LookVector.Z;
-
-            local CameraPos = CamCframe.Position;
-            CamPosX = CameraPos.X; CamPosY = CameraPos.Y; CamPosZ = CameraPos.Z;
-
-            HalfViewportX = ViewportSize.X * 0.5;
-            HalfViewportY = ViewportSize.Y * 0.5;
-            FocalLength = HalfViewportY / MathTan(MathRad(Camera.FieldOfView * 0.5));
-
-            local LocalPlayerRoot = Esp.LocalPlayerRoot;
-            local LpX, LpY, LpZ = 0, 0, 0;
-            local HasLocalPlayer = LocalPlayerRoot ~= nil;
-
-            if HasLocalPlayer then
-                local LpPos = LocalPlayerRoot.Position;
-                LpX = LpPos.X; LpY = LpPos.Y; LpZ = LpPos.Z;
-            end;
-
-            local List = Esp.List;
-
-            for i = 1, #List do
-                local Entry = List[i];
-
-                if Entry.IsDead or not Entry.RootPart or not Entry.Character then
-                    Esp.EntryHide(Entry);
-                    continue;
-                end;
-
-                local RootPos = Entry.RootPart.Position;
-                local Rx, Ry, Rz = RootPos.X, RootPos.Y, RootPos.Z;
-
-                if HasLocalPlayer then
-                    local Dx = Rx - LpX; local Dy = Ry - LpY; local Dz = Rz - LpZ;
-                    if Dx * Dx + Dy * Dy + Dz * Dz > CullDistanceSq then
-                        Esp.EntryHide(Entry);
-                        continue;
-                    end;
-                end;
-
-                local FrontDot = (Rx - CamPosX) * CamLookX
-                    + (Ry - CamPosY) * CamLookY
-                    + (Rz - CamPosZ) * CamLookZ;
-
-                if FrontDot < 0 then
-                    Esp.EntryHide(Entry);
-                    continue;
-                end;
-
-                if Entry.Highlight and not Entry.Highlight.Enabled then
-                    Entry.Highlight.Enabled = true;
-                end;
-
-                ScreenMinX = MathHuge; ScreenMinY = MathHuge;
-                ScreenMaxX = -MathHuge; ScreenMaxY = -MathHuge;
-
-                local CamDx = Rx - CamPosX;
-                local CamDy = Ry - CamPosY;
-                local CamDz = Rz - CamPosZ;
-                local CamDist2 = CamDx * CamDx + CamDy * CamDy + CamDz * CamDz;
-
-                if Entry.PartCount == 0 or CamDist2 > LodDistanceSq then
-                    local DepthD = CamLookX * CamDx + CamLookY * CamDy + CamLookZ * CamDz;
-                    local RightD = CamRightX * CamDx + CamRightY * CamDy + CamRightZ * CamDz;
-                    local UpD = CamUpX * CamDx + CamUpY * CamDy + CamUpZ * CamDz;
-                    local BoxHalfW = 2.5;
-                    local EntryTop = Entry.TopOffset;
-                    local EntryBot = Entry.BotOffset;
-                    local Inv;
-
-                    local TopDepth = DepthD + (CamLookY * EntryTop);
-                    if TopDepth > 0 then
-                        Inv = FocalLength / TopDepth;
-                        local Sx = HalfViewportX + RightD * Inv;
-                        local Sy = HalfViewportY - (UpD + EntryTop) * Inv;
-                        if Sx < ScreenMinX then ScreenMinX = Sx end; if Sx > ScreenMaxX then ScreenMaxX = Sx end;
-                        if Sy < ScreenMinY then ScreenMinY = Sy end; if Sy > ScreenMaxY then ScreenMaxY = Sy end;
-                    end;
-
-                    local BotDepth = DepthD - (CamLookY * EntryBot);
-                    if BotDepth > 0 then
-                        Inv = FocalLength / BotDepth;
-                        local Sx = HalfViewportX + RightD * Inv;
-                        local Sy = HalfViewportY - (UpD - EntryBot) * Inv;
-                        if Sx < ScreenMinX then ScreenMinX = Sx end; if Sx > ScreenMaxX then ScreenMaxX = Sx end;
-                        if Sy < ScreenMinY then ScreenMinY = Sy end; if Sy > ScreenMaxY then ScreenMaxY = Sy end;
-                    end;
-
-                    if DepthD > 0 then
-                        Inv = FocalLength / DepthD;
-                        local SxLeft = HalfViewportX + (RightD - BoxHalfW) * Inv;
-                        local SxRight = HalfViewportX + (RightD + BoxHalfW) * Inv;
-                        local SyMid = HalfViewportY - UpD * Inv;
-                        if SxLeft < ScreenMinX then ScreenMinX = SxLeft end; if SxLeft > ScreenMaxX then ScreenMaxX = SxLeft end;
-                        if SxRight < ScreenMinX then ScreenMinX = SxRight end; if SxRight > ScreenMaxX then ScreenMaxX = SxRight end;
-                        if SyMid < ScreenMinY then ScreenMinY = SyMid end; if SyMid > ScreenMaxY then ScreenMaxY = SyMid end;
-                    end;
+                    weight = 9e9,
+                    style = "normal",
+                    assetId = getcustomasset(ttfPath)
+                }}
+            }
+
+            pcall(writefile, fontPath, HttpService:JSONEncode(Config))
+        end
+    end
+
+    if not getgenv().Fonts then
+        getgenv().Fonts = {
+            Loaded = {}
+        }
+
+        for _, FontPath in listfiles(fontsFolder) do
+            FontPath = P(FontPath)
+
+           local Name = string_match(FontPath, fontsFolder .. "/(.+)%.font")
+              if Name then
+    local ok, asset = pcall(getcustomasset, FontPath)
+
+    if ok then
+        Fonts.Loaded[Name] = Font_new(asset, Enum.FontWeight.Regular)
+    else
+        -- fall back cause shit mobile noobs
+        Fonts.Loaded[Name] = Font_new(Enum.Font.SourceSans, Enum.FontWeight.Regular)
+    end
+end
+
+        end
+    end
+end
+
+
+local Utility = {}; do
+    function Utility.AddConnection(Signal, Function)
+        local Connection = Signal:Connect(function(...)
+            local Args = {...}
+            
+            local Success, Message = pcall(function() coroutine_wrap(Function)(table_unpack(Args)) end)
+            
+            if not Success and not ESPErrors[Message] then
+                local ErrorMessage = string_format("[ERROR] | An error has occured:\n%s", Message)
+
+                warn(ErrorMessage)
+                
+                ESPErrors[Message] = Message
+                
+                if ConnectionsTable[Connection] then
+                    ConnectionsTable[Connection] = nil
+                end
+                
+                return Connection and Connection:Disconnect()
+            end
+        end)
+        
+        if Connection and ConnectionsTable then
+            table_insert(ConnectionsTable, Connection)
+        end
+        
+        return Connection
+    end
+
+    function Utility.CreateObject(Type, Properties, Hidden)
+        local Hidden = Hidden or false
+        local Object = Instance_new(Type)
+
+        for Index, Value in Properties do
+            Object[Index] = Value
+        end
+
+        table_insert(ObjectsTable, Object)
+
+        return Object
+    end
+
+    function Utility.CalculateBox(ESPSettings, Target, RootPart, Parts)
+        local MinX, MinY, MaxX, MaxY = 9000, 9000, -9000, -9000
+        local BoxWidth, BoxHeight = 0, 0
+        local Position, OnScreen = WorldToViewportPoint(Camera, RootPart.Position)
+
+        if ESPSettings.BoundingBox.DynamicBox then
+            for _, Part in Parts do
+                if IsA(Part, "BasePart") and Part.Name ~= "HumanoidRootPart" and Part.Transparency ~= 1 then
+                    local PartCFrame = Part.CFrame
+                    local PartSize = Part.Size
+                    local Corners = {
+                        PartCFrame * Vector3_new(PartSize.X / 2, PartSize.Y / 2, PartSize.Z / 2),
+                        PartCFrame * Vector3_new(-PartSize.X / 2, PartSize.Y / 2, PartSize.Z / 2),
+                        PartCFrame * Vector3_new(PartSize.X / 2, -PartSize.Y / 2, PartSize.Z / 2),
+                        PartCFrame * Vector3_new(-PartSize.X / 2, -PartSize.Y / 2, PartSize.Z / 2),
+                        PartCFrame * Vector3_new(PartSize.X / 2, PartSize.Y / 2, -PartSize.Z / 2),
+                        PartCFrame * Vector3_new(-PartSize.X / 2, PartSize.Y / 2, -PartSize.Z / 2),
+                        PartCFrame * Vector3_new(PartSize.X / 2, -PartSize.Y / 2, -PartSize.Z / 2),
+                        PartCFrame * Vector3_new(-PartSize.X / 2, -PartSize.Y / 2, -PartSize.Z / 2),
+                    }
+
+                    for _, Corner in Corners do
+                        local ScreenPosition, OnScreen = WorldToViewportPoint(Camera, Corner)
+
+                        MinX = math_min(MinX, ScreenPosition.X)
+                        MinY = math_min(MinY, ScreenPosition.Y)
+                        MaxX = math_max(MaxX, ScreenPosition.X)
+                        MaxY = math_max(MaxY, ScreenPosition.Y)
+                    end
+                end
+            end
+            
+            BoxWidth, BoxHeight = MaxX - MinX, MaxY - MinY
+        else
+            local Scale = (RootPart.Size.Y * Camera.ViewportSize.Y) / (Position.Z * 2)
+
+            BoxWidth, BoxHeight = 3 * Scale, 4.5 * Scale
+            MinX, MinY = Position.X - (BoxWidth / 2), Position.Y - (BoxHeight / 2)
+        end
+
+        return BoxWidth, BoxHeight, MinX, MinY, OnScreen
+    end
+
+    function Utility.GetFontType(ESPSettings, Text)
+        local FontType = string_lower(ESPSettings.FontType)
+
+        if FontType == "uppercase" then
+            return string_upper(Text)
+        elseif FontType == "lowercase" then
+            return string_lower(Text)
+        else
+            return Text
+        end
+    end
+end
+
+local PlayerHelper = {}; do
+    function PlayerHelper.GetCharacter(Player)
+        if not Player then return nil end
+        
+        local Character = Player.Character
+
+        --[[
+            if CurrentGame == "Phantom Forces" then
+                Character = ...
+            elseif CurrentGame == "Bad Business" then
+                Character = ...
+            end
+        ]]
+
+        return Character
+    end
+
+    function PlayerHelper.GetChildren(Character)
+        if not Character then return {} end
+        
+        local Children = Character:GetChildren()
+
+        return Children
+    end
+
+    function PlayerHelper.GetDescendants(Character)
+        if not Character then return {} end
+        
+        local Descendants = Character:GetDescendants()
+
+        return Descendants
+    end
+
+    function PlayerHelper.GetTool(Player)
+        if not Player then return nil end
+        
+        --[[
+            return nil to use the default way (connections)
+
+            if CurrentGame == "Phantom Forces" then
+                return ...
+            elseif CurrentGame == "Bad Business" then
+                return ...
+            end 
+        ]]
+
+        return nil
+    end
+end
+
+do -- Functions
+    local TextAlignments = {
+        ["Left"] = "Right",
+        ["Right"] = "Left",
+        ["Top"] = "Center",
+        ["Bottom"] = "Center",
+    }
+
+    local Layout = {
+        {UDim2_new(0, -1, 0, -1), UDim2_new(0.3, 0, 0, 1), Vector2_new(0, 0), 0},
+        {UDim2_new(0, -1, 0, -1), UDim2_new(0, 1, 0.3, 0), Vector2_new(0, 0), 180},
+
+        {UDim2_new(1, 1, 0, -1), UDim2_new(0.3, 0, 0, 1), Vector2_new(1, 0), 0},
+        {UDim2_new(1, 1, 0, -1), UDim2_new(0, 1, 0.3, 0), Vector2_new(1, 0), 180},
+
+        {UDim2_new(0, -1, 1, 1), UDim2_new(0.3, 0, 0, 1), Vector2_new(0, 1), 0},
+        {UDim2_new(0, -1, 1, 1), UDim2_new(0, 1, 0.3, 0), Vector2_new(0, 1), -180},
+
+        {UDim2_new(1, 1, 1, 1), UDim2_new(0.3, 0, 0, 1), Vector2_new(1, 1), 0},
+        {UDim2_new(1, 1, 1, 1), UDim2_new(0, 1, 0.3, 0), Vector2_new(1, 1), -180},
+    }
+
+    ESP.Holder = Utility.CreateObject("ScreenGui", {
+		Name = "\n",
+		ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets,
+		ZIndexBehavior = Enum.ZIndexBehavior.Global,
+		ResetOnSpawn = false,
+		DisplayOrder = 10000,
+		IgnoreGuiInset = true,
+		Parent = gethui()
+	})
+
+    function ESP.AddTarget(Target, Type)
+        if Target == nil then return end
+        if not ESP.Targets[Type] then ESP.Targets[Type] = {} end
+        if ESP.Targets[Type][Target] then return end
+
+        local TargetInfo = {
+            Objects = {},
+            CharacterObjects = {},
+            CharacterConnection = nil,
+            ToolConnection = {Added = nil, Removed = nil},
+            CurrentTool = "none",
+            LastTick = os_clock()
+        }
+
+        local IsPlayer = IsA(Target, "Player")
+        local IsBasePart = IsA(Target, "BasePart")
+        local Objects = TargetInfo.Objects
+        local LastTick = TargetInfo.LastTick
+        local ToolConnection = TargetInfo.ToolConnection
+        local CharacterObjects = TargetInfo.CharacterObjects
+        local ESPSettings = ESPSettings[Type]
+        local ESPFont = Fonts.Loaded[ESPSettings.Font]
+        local ESPFontSize = ESPSettings.FontSize
+        local ESPHolder = ESP.Holder
+
+        CharacterObjects.Character = if IsPlayer then (PlayerHelper.GetCharacter(Target)) else Target
+        CharacterObjects.Children = PlayerHelper.GetChildren(CharacterObjects.Character)
+        CharacterObjects.Descendants = PlayerHelper.GetDescendants(CharacterObjects.Character)
+
+        if IsPlayer and CharacterObjects.Character then
+            CharacterObjects.HumanoidRootPart = CharacterObjects.Character:FindFirstChild("HumanoidRootPart")
+            CharacterObjects.Humanoid = CharacterObjects.Character:FindFirstChildWhichIsA("Humanoid")
+        end
+
+        do -- Functions
+            function TargetInfo.Init()
+                if #Objects > 0 then return end
+
+                if IsPlayer then
+                    TargetInfo.CharacterConnection = Utility.AddConnection(Target.CharacterAdded, function(Character)
+                        CharacterObjects.Character = Character
+                        CharacterObjects.HumanoidRootPart = WaitForChild(Character, "HumanoidRootPart", 10)
+                        CharacterObjects.Humanoid = WaitForChild(Character, "Humanoid", 10)
+                        CharacterObjects.Children = PlayerHelper.GetChildren(Character)
+                        CharacterObjects.Descendants = PlayerHelper.GetDescendants(Character)
+
+                        local Highlight = Objects["Highlight"]; do
+                            Highlight.Adornee = CharacterObjects.Character
+                        end
+                    end)
+
+                    if CharacterObjects.Character then
+                        ToolConnection.Added = Utility.AddConnection(CharacterObjects.Character.ChildAdded, function(Child)
+                            if IsA(Child, "Tool") then 
+                                TargetInfo.CurrentTool = Child.Name
+                            end 
+                        end)
+                        
+                        ToolConnection.Removed = Utility.AddConnection(CharacterObjects.Character.ChildRemoved, function(Child)
+                            if IsA(Child, "Tool") then 
+                                TargetInfo.CurrentTool = "none"
+                            end 
+                        end)
+                    end
+                end
+
+                Objects["Highlight"] = Utility.CreateObject("Highlight", {Parent = CharacterObjects.Character, Adornee = CharacterObjects.Character})
+                Objects["TargetHolder"] = Utility.CreateObject("Frame", {Parent = ESPHolder, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                Objects["TopHolder"] = Utility.CreateObject("Frame", {Parent = Objects["TargetHolder"], AutomaticSize = Enum.AutomaticSize.Y, Visible = true, BackgroundTransparency = 1, AnchorPoint = Vector2_new(0, 1), Position = UDim2_new(0, -2, 0, -5), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 4, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                Objects["BottomHolder"] = Utility.CreateObject("Frame", {Parent = Objects["TargetHolder"], AutomaticSize = Enum.AutomaticSize.Y, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, -2, 1, 3), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 4, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                Objects["LeftHolder"] = Utility.CreateObject("Frame", {Parent = Objects["TargetHolder"], AutomaticSize = Enum.AutomaticSize.X, Visible = true, BackgroundTransparency = 1, AnchorPoint = Vector2_new(1, 0), Position = UDim2_new(0, -4, 0, -2), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 1, 4), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                Objects["RightHolder"] = Utility.CreateObject("Frame", {Parent = Objects["TargetHolder"], AutomaticSize = Enum.AutomaticSize.X, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(1, 8, 0, -2), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 1, 4), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                
+                do -- Text Holders
+                    Objects["TopTextHolder"] = Utility.CreateObject("Frame", {Parent = Objects["TopHolder"], AutomaticSize = Enum.AutomaticSize.Y, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                    Utility.CreateObject("UIListLayout", {Parent = Objects["TopTextHolder"], VerticalAlignment = Enum.VerticalAlignment.Bottom, HorizontalAlignment = Enum.HorizontalAlignment.Center, Padding = UDim_new(0, 0), SortOrder = Enum.SortOrder.LayoutOrder})
+                    Utility.CreateObject("UIPadding", {Parent = Objects["TopTextHolder"], PaddingBottom = UDim_new(0, 2)})
+
+                    Objects["BottomTextHolder"] = Utility.CreateObject("Frame", {Parent = Objects["BottomHolder"], LayoutOrder = 2, AutomaticSize = Enum.AutomaticSize.Y, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                    Utility.CreateObject("UIListLayout", {Parent = Objects["BottomTextHolder"], HorizontalAlignment = Enum.HorizontalAlignment.Center, Padding = UDim_new(0, 0), SortOrder = Enum.SortOrder.LayoutOrder})
+                    Utility.CreateObject("UIPadding", {Parent = Objects["BottomTextHolder"], PaddingTop = UDim_new(0, 2)})
+
+                    Objects["LeftTextHolder"] = Utility.CreateObject("Frame", {Parent = Objects["LeftHolder"], AutomaticSize = Enum.AutomaticSize.XY, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                    Utility.CreateObject("UIListLayout", {Parent = Objects["LeftTextHolder"], HorizontalAlignment = Enum.HorizontalAlignment.Right, Padding = UDim_new(0, 0), SortOrder = Enum.SortOrder.LayoutOrder})
+                    Utility.CreateObject("UIPadding", {Parent = Objects["LeftTextHolder"], PaddingTop = UDim_new(0, -3)})
+
+                    Objects["RightTextHolder"] = Utility.CreateObject("Frame", {Parent = Objects["RightHolder"], LayoutOrder = 2, AutomaticSize = Enum.AutomaticSize.XY, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                    Utility.CreateObject("UIListLayout", {Parent = Objects["RightTextHolder"], HorizontalAlignment = Enum.HorizontalAlignment.Left, Padding = UDim_new(0, 0), SortOrder = Enum.SortOrder.LayoutOrder})
+                    Utility.CreateObject("UIPadding", {Parent = Objects["RightTextHolder"], PaddingTop = UDim_new(0, -3)})
+                end
+
+                do -- Bar Holders
+                    Objects["TopBarHolder"] = Utility.CreateObject("Frame", {Visible = false, Parent = Objects["TopHolder"], AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                    Utility.CreateObject("UIListLayout", {Parent = Objects["TopBarHolder"], HorizontalAlignment = Enum.HorizontalAlignment.Center, Padding = UDim_new(0, 1), VerticalAlignment = Enum.VerticalAlignment.Bottom, SortOrder = Enum.SortOrder.LayoutOrder})
+
+                    Objects["BottomBarHolder"] = Utility.CreateObject("Frame", {Visible = false, Parent = Objects["BottomHolder"], AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                    Utility.CreateObject("UIListLayout", {Parent = Objects["BottomBarHolder"], HorizontalAlignment = Enum.HorizontalAlignment.Center, Padding = UDim_new(0, 1), VerticalAlignment = Enum.VerticalAlignment.Bottom, SortOrder = Enum.SortOrder.LayoutOrder})
+                    Utility.CreateObject("UIPadding", {Parent = Objects["BottomBarHolder"], PaddingTop = UDim_new(0, 2)})
+
+                    Objects["LeftBarHolder"] = Utility.CreateObject("Frame", {Visible = false, Parent = Objects["LeftHolder"], AutomaticSize = Enum.AutomaticSize.X, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 1, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                    Utility.CreateObject("UIListLayout", {Parent = Objects["LeftBarHolder"], FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Right, Padding = UDim_new(0, 1), SortOrder = Enum.SortOrder.LayoutOrder})
+                    Utility.CreateObject("UIPadding", {Parent = Objects["LeftBarHolder"], PaddingRight = UDim_new(0, 1)})
+
+                    Objects["RightBarHolder"] = Utility.CreateObject("Frame", {Visible = false, Parent = Objects["RightHolder"], AutomaticSize = Enum.AutomaticSize.X, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 1, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                    Utility.CreateObject("UIListLayout", {Parent = Objects["LeftBarHolder"], FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Right, Padding = UDim_new(0, 1), SortOrder = Enum.SortOrder.LayoutOrder})
+                    Utility.CreateObject("UIPadding", {Parent = Objects["RightBarHolder"], PaddingLeft = UDim_new(0, -3)})
+                end
+                
+                do -- List Layouts
+                    Utility.CreateObject("UIListLayout", {Parent = Objects["TopHolder"], VerticalAlignment = Enum.VerticalAlignment.Bottom, Padding = UDim_new(0, 3), SortOrder = Enum.SortOrder.LayoutOrder})
+                    Utility.CreateObject("UIListLayout", {Parent = Objects["BottomHolder"], Padding = UDim_new(0, 1), SortOrder = Enum.SortOrder.LayoutOrder})
+                    Utility.CreateObject("UIPadding", {Parent = Objects["LeftHolder"], PaddingRight = UDim_new(0, 1)})
+                    Utility.CreateObject("UIListLayout", {Parent = Objects["LeftHolder"], FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Left, Padding = UDim_new(0, 5), SortOrder = Enum.SortOrder.LayoutOrder})
+                    Utility.CreateObject("UIListLayout", {Parent = Objects["RightHolder"], FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Left, Padding = UDim_new(0, 2), SortOrder = Enum.SortOrder.LayoutOrder})
+                end
+
+                do -- Box
+                    Objects["BoxGlow"] = Utility.CreateObject("ImageLabel", {Parent = Objects["TargetHolder"], Image = "rbxassetid://110204605000367", ScaleType = Enum.ScaleType.Slice, SliceCenter = Rect_new(Vector2_new(21, 21), Vector2_new(79, 79)), AutomaticSize = Enum.AutomaticSize.XY, ImageTransparency = 0.65, ResampleMode = Enum.ResamplerMode.Pixelated, Visible = true, BackgroundTransparency = 1, Position = UDim2_new(0, -21, 0, -21), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                    Objects["BoxGlowGradient"] = Utility.CreateObject("UIGradient", {Parent = Objects["BoxGlow"], Rotation = 90, Color = ColorSequence_new{ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(1, Color3_fromRGB(0, 0, 0))}, Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, 0), NumberSequenceKeypoint_new(1, 0)}})
+                    Utility.CreateObject("UIPadding", {Parent = Objects["BoxGlow"], PaddingTop = UDim_new(0, 21), PaddingBottom = UDim_new(0, 20), PaddingLeft = UDim_new(0, 21), PaddingRight = UDim_new(0, 20)})
+
+                    Objects["BoxOutlineHolder"] = Utility.CreateObject("Frame", {Parent = Objects["BoxGlow"], Visible = false, BackgroundTransparency = 1, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                    Objects["BoxOutline"] = Utility.CreateObject("UIStroke", {Parent = Objects["BoxOutlineHolder"], Thickness = 3, LineJoinMode = Enum.LineJoinMode.Miter})
+                    Objects["BoxOutlineGradient"] = Utility.CreateObject("UIGradient", {Parent = Objects["BoxOutline"], Rotation = 90, Color = ColorSequence_new{ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(1, Color3_fromRGB(0, 0, 0))}, Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, 0), NumberSequenceKeypoint_new(1, 0)}})
+
+                    Objects["BoxInlineHolder"] = Utility.CreateObject("Frame", {Parent = Objects["BoxGlow"], Visible = false, BackgroundTransparency = 1, Position = UDim2_new(0, -1, 0, -1), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                    Objects["BoxInline"] = Utility.CreateObject("UIStroke", {Parent = Objects["BoxInlineHolder"], Color = Color3_fromRGB(255, 255, 255), LineJoinMode = Enum.LineJoinMode.Miter})
+                    Objects["BoxInlineGradient"] = Utility.CreateObject("UIGradient", {Parent = Objects["BoxInline"], Rotation = 90, Color = ColorSequence_new{ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(1, Color3_fromRGB(255, 255, 255))}, Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, 0), NumberSequenceKeypoint_new(1, 0)}})
+
+                    Objects["BoxFill"] = Utility.CreateObject("Frame", {Parent = Objects["BoxGlow"], Visible = false, BackgroundTransparency = 0, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                    Objects["BoxFillGradient"] = Utility.CreateObject("UIGradient", {Parent = Objects["BoxFill"], Rotation = 90, Color = ColorSequence_new{ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(1, Color3_fromRGB(255, 255, 255))}, Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, 1), NumberSequenceKeypoint_new(1, 1)}})
+                end
+
+                do -- ConerBox
+                    Objects["CornerHolder"] = Utility.CreateObject("Frame", {Parent = Objects["BoxGlow"], Visible = false, BackgroundTransparency = 1, Position = UDim2_new(0, -1, 0, -1), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+
+                    for i = 1, 8 do
+                        Objects["Line_" .. i] = Utility.CreateObject("Frame", {Parent = Objects["CornerHolder"], Visible = false, BackgroundTransparency = 0, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(0, 0, 0, 0), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                        Utility.CreateObject("UIStroke", {Parent = Objects["Line_" .. i], Thickness = 1, LineJoinMode = Enum.LineJoinMode.Miter})
+                    end
+                end
+
+                do -- Bars
+                    for BarName, Bar in ESPSettings.Bars do
+                        Objects[BarName .. "Outline"] = Utility.CreateObject("Frame", {Parent = Objects[Bar.Position .. "BarHolder"], ZIndex = 5, LayoutOrder = 0, Visible = true, BackgroundTransparency = 0, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 1), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(0, 0, 0)})
+                        Utility.CreateObject("UIStroke", {Parent = Objects[BarName .. "Outline"], Thickness = 1, LineJoinMode = Enum.LineJoinMode.Miter})
+
+                        Objects[BarName] = Utility.CreateObject("Frame", {Parent = Objects[BarName .. "Outline"], ZIndex = 6, LayoutOrder = 0, Visible = true, BackgroundTransparency = 0, Position = UDim2_new(0, 0, 0, 0), BorderColor3 = Color3_fromRGB(0, 0, 0), Size = UDim2_new(1, 0, 0, 1), BorderSizePixel = 0, BackgroundColor3 = Color3_fromRGB(255, 255, 255)})
+                        Objects[BarName .. "Gradient"] = Utility.CreateObject("UIGradient", {Parent = Objects[BarName], Rotation = 90, Color = ColorSequence_new{ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(0, Color3_fromRGB(0, 0, 0)), ColorSequenceKeypoint_new(1, Color3_fromRGB(255, 255, 255))}, Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, 0), NumberSequenceKeypoint_new(1, 0)}})
+                    
+                        Objects[BarName .. "Text"] = Utility.CreateObject("TextLabel", {
+                            Parent = Objects[Bar.Position .. "TextHolder"],
+                            FontFace = ESPFont,
+                            TextSize = ESPFontSize,
+                            LayoutOrder = 2,
+                            TextColor3 = Color3_fromRGB(255, 255, 255),
+                            Text = "",
+                            AnchorPoint = Vector2_new(0, 1),
+                            BorderSizePixel = 0,
+                            Visible = false,
+                            BackgroundTransparency = 1,
+                            ZIndex = 5,
+                            AutomaticSize = Enum.AutomaticSize.Y,
+                            Size = UDim2_new(1, 0, 0, 0)
+                        }); Utility.CreateObject("UIStroke", {Parent = Objects[BarName .. "Text"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter})
+                    end
+                end
+
+                do -- Texts
+                    Objects["TargetName"] = Utility.CreateObject("TextLabel", {
+                        Parent = Objects["TopTextHolder"],
+                        FontFace = ESPFont,
+                        TextSize = ESPFontSize,
+                        LayoutOrder = 2,
+                        TextColor3 = Color3_fromRGB(255, 255, 255),
+                        Text = "",
+                        AnchorPoint = Vector2_new(0, 1),
+                        BorderSizePixel = 0,
+                        Visible = false,
+                        BackgroundTransparency = 1,
+                        ZIndex = 5,
+                        AutomaticSize = Enum.AutomaticSize.Y,
+                        Size = UDim2_new(1, 0, 0, 0)
+                    }); Utility.CreateObject("UIStroke", {Parent = Objects["TargetName"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter})
+
+                    Objects["Distance"] = Utility.CreateObject("TextLabel", {
+                        Parent = Objects["BottomTextHolder"],
+                        FontFace = ESPFont,
+                        TextSize = ESPFontSize,
+                        LayoutOrder = 2,
+                        TextColor3 = Color3_fromRGB(255, 255, 255),
+                        Text = "",
+                        AnchorPoint = Vector2_new(0, 1),
+                        BorderSizePixel = 0,
+                        Visible = false,
+                        BackgroundTransparency = 1,
+                        ZIndex = 5,
+                        AutomaticSize = Enum.AutomaticSize.Y,
+                        Size = UDim2_new(1, 0, 0, 0)
+                    }); Utility.CreateObject("UIStroke", {Parent = Objects["Distance"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter})
+
+                    Objects["Flags"] = Utility.CreateObject("TextLabel", {
+                        Parent = Objects["RightTextHolder"],
+                        FontFace = ESPFont,
+                        TextSize = ESPFontSize,
+                        LayoutOrder = 2,
+                        TextColor3 = Color3_fromRGB(255, 255, 255),
+                        Text = "",
+                        AnchorPoint = Vector2_new(0, 1),
+                        BorderSizePixel = 0,
+                        Visible = false,
+                        BackgroundTransparency = 1,
+                        ZIndex = 5,
+                        AutomaticSize = Enum.AutomaticSize.Y,
+                        Size = UDim2_new(1, 0, 0, 0)
+                    }); Utility.CreateObject("UIStroke", {Parent = Objects["Flags"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter})
+
+                    Objects["Weapon"] = Utility.CreateObject("TextLabel", {
+                        Parent = Objects["BottomTextHolder"],
+                        FontFace = ESPFont,
+                        TextSize = ESPFontSize,
+                        LayoutOrder = 2,
+                        TextColor3 = Color3_fromRGB(255, 255, 255),
+                        Text = "none",
+                        AnchorPoint = Vector2_new(0, 1),
+                        BorderSizePixel = 0,
+                        Visible = false,
+                        BackgroundTransparency = 1,
+                        ZIndex = 5,
+                        AutomaticSize = Enum.AutomaticSize.Y,
+                        Size = UDim2_new(1, 0, 0, 0)
+                    }); Utility.CreateObject("UIStroke", {Parent = Objects["Weapon"], Color = Color3_fromRGB(0, 0, 0), LineJoinMode = Enum.LineJoinMode.Miter})
+                end
+
+                ESP.Targets[Type][Target] = TargetInfo
+            end
+
+            function TargetInfo.Update()
+                if (os_clock() - LastTick) < (1 / ESPSettings.RefreshRate) then return end
+                if not CharacterObjects.Children then return end
+                if not CharacterObjects.Descendants then return end
+
+                local CurrentChildren = PlayerHelper.GetChildren(CharacterObjects.Character)
+                local CurrentDescendants = PlayerHelper.GetDescendants(CharacterObjects.Character)
+
+                if #CharacterObjects.Children ~= #CurrentChildren then
+                    CharacterObjects.Children = CurrentChildren
+
+                    return
+                end
+
+                if #CharacterObjects.Descendants ~= #CurrentDescendants then
+                    CharacterObjects.Descendants = CurrentDescendants
+
+                    return
+                end
+
+                LastTick = os_clock()
+                Objects["TargetHolder"].Visible = false
+                Objects["Highlight"].Enabled = false
+
+                if (not ESPSettings.LocalPlayer) and Target == Client then return end
+                if not CharacterObjects.Character then return end
+                if IsPlayer then
+                    if not CharacterObjects.HumanoidRootPart then
+                        if CharacterObjects.Character then
+                            CharacterObjects.HumanoidRootPart = FindFirstChild(CharacterObjects.Character, "HumanoidRootPart")
+                        end
+
+                        return
+                    end
+                    
+                    if not CharacterObjects.Humanoid then
+                        if CharacterObjects.Character then
+                            CharacterObjects.Humanoid = FindFirstChildWhichIsA(CharacterObjects.Character, "Humanoid")
+                        end
+
+                        return
+                    end
                 else
-                    local Parts = Entry.Parts;
-                    local HalfWList = Entry.PartHalfW;
-                    local HalfHList = Entry.PartHalfH;
-                    local HalfDList = Entry.PartHalfD;
+                    if not CharacterObjects.HumanoidRootPart then
+                        if IsA(Target, "BasePart") then
+                            CharacterObjects.HumanoidRootPart = Target
+                        elseif CharacterObjects.Character and CharacterObjects.Character.PrimaryPart then
+                            CharacterObjects.HumanoidRootPart = CharacterObjects.Character.PrimaryPart
+                        end
 
-                    for PartIndex = 1, Entry.PartCount do
-                        local Part = Parts[PartIndex];
-                        if not Part or not Part.Parent then continue; end;
-                        local Cx, Cy, Cz,
-                            M00, M01, M02,
-                            M10, M11, M12,
-                            M20, M21, M22 = Part.CFrame:GetComponents();
-                        Esp.ProjectObb(
-                            Cx, Cy, Cz,
-                            M00, M01, M02,
-                            M10, M11, M12,
-                            M20, M21, M22,
-                            HalfWList[PartIndex], HalfHList[PartIndex], HalfDList[PartIndex]
-                        );
-                    end;
-                end;
+                        return
+                    end
+                end
 
-                if ScreenMinX == MathHuge then
-                    Esp.EntryHide(Entry);
-                    continue;
-                end;
+                local Distance = (Camera.CFrame.Position - CharacterObjects.HumanoidRootPart.Position).Magnitude
+                if Distance > ESPSettings.MaxDistance then return end
 
-                local BoxX = MathFloor(ScreenMinX);
-                local BoxY = MathFloor(ScreenMinY);
-                local BoxW = MathMax(MathFloor(ScreenMaxX - ScreenMinX), BoxMinSize);
-                local BoxH = MathMax(MathFloor(ScreenMaxY - ScreenMinY), BoxMinSize);
+                local BodyParts = if ESPSettings.BoundingBox.IncludeAccessories then CharacterObjects.Descendants else CharacterObjects.Children
+                local BoxWidth, BoxHeight, BoxPositionX, BoxPositionY, OnScreen = Utility.CalculateBox(ESPSettings, Target, CharacterObjects.HumanoidRootPart, (if IsBasePart then {Target} else BodyParts))
+                
+                if not OnScreen then
+                    Objects["TargetHolder"].Visible = false
+                    Objects["Highlight"].Enabled = false
+                    return
+                end
 
-                local BoxCx = BoxX + MathFloor(BoxW * 0.5);
-                local BoxRight = BoxX + BoxW;
-                local BoxBot = BoxY + BoxH;
+                local BoxSize, BoxPosition = UDim2_fromOffset(math_floor(BoxWidth), math_floor(BoxHeight)), UDim2_fromOffset(math_floor(BoxPositionX), math_floor(BoxPositionY))
+                local TargetHolder = Objects["TargetHolder"]; do
+                    TargetHolder.Visible = true
+                    if TargetHolder.Position ~= BoxPosition then TargetHolder.Position = BoxPosition end
+                    if TargetHolder.Size ~= BoxSize then TargetHolder.Size = BoxSize end
+                end
 
-                Entry.IsVisible = true;
-
-                local IsDirty = BoxX ~= Entry.PrevBoxX or BoxY ~= Entry.PrevBoxY
-                    or BoxW ~= Entry.PrevBoxW or BoxH ~= Entry.PrevBoxH;
-
-                if IsDirty then
-                    Entry.PrevBoxX = BoxX; Entry.PrevBoxY = BoxY;
-                    Entry.PrevBoxW = BoxW; Entry.PrevBoxH = BoxH;
-
-                    Entry.PrevFillH = -1;
-                    Entry.PrevArmorFillW = -1;
-                    Entry.PrevHpStr = ""; Entry.PrevNameStr = ""; Entry.PrevWeaponStr = "__unset__";
-                    Entry.PrevDistStr = ""; Entry.PrevFlagsStr = "";
-                    Entry.PrevHpLabelX = -1; Entry.PrevHpLabelY = -1;
-                    Entry.PrevNmLabelX = -1; Entry.PrevNmLabelY = -1;
-                    Entry.PrevWpLabelX = -1; Entry.PrevWpLabelY = -1;
-                    Entry.PrevDtLabelX = -1; Entry.PrevDtLabelY = -1;
-                    Entry.PrevDistance = -1;
-                    Entry.PrevFlLabelX = -1; Entry.PrevFlLabelY = -1;
+                local BoxOutline, BoxInline, BoxFill, BoxGlow = Objects["BoxOutline"], Objects["BoxInline"], Objects["BoxFill"], Objects["BoxGlow"]; do
+                    local BoxEnabled, BoxColor, BoxTransparency, BoxRotation, BoxType = ESPSettings.BoundingBox.Enabled, ESPSettings.BoundingBox.Color, ESPSettings.BoundingBox.Transparency, ESPSettings.BoundingBox.Rotation, ESPSettings.BoundingBox.Type
 
                     if BoxEnabled then
-                        Entry.OuterStroke.Visible = true;
-                        Entry.OuterStroke.Position = UDim2New(0, BoxX - 1, 0, BoxY - 1);
-                        Entry.OuterStroke.Size = UDim2New(0, BoxW + 2, 0, BoxH + 2);
+                        local BoxGlowGradient = Objects["BoxGlowGradient"]; do
+                            local BoxGlowEnabled, BoxGlowColor, BoxGlowTransparency, BoxGlowRotation = ESPSettings.BoundingBox.Glow.Enabled, ESPSettings.BoundingBox.Glow.Color, ESPSettings.BoundingBox.Glow.Transparency, ESPSettings.BoundingBox.Glow.Rotation
 
-                        Entry.BorderStroke.Visible = true;
-                        Entry.BorderStroke.Position = UDim2New(0, BoxX, 0, BoxY);
-                        Entry.BorderStroke.Size = UDim2New(0, BoxW, 0, BoxH);
+                            if BoxGlowEnabled then
+                                BoxGlow.ImageTransparency = 0
+                                BoxGlowGradient.Rotation = BoxGlowRotation
+                                BoxGlowGradient.Color = ColorSequence_new{ColorSequenceKeypoint_new(0, BoxGlowColor[1]), ColorSequenceKeypoint_new(1, BoxGlowColor[2])}
+                                BoxGlowGradient.Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, BoxGlowTransparency[1]), NumberSequenceKeypoint_new(1, BoxGlowTransparency[2])}
+                            else
+                                BoxGlow.ImageTransparency = 1
+                            end
+                        end
 
-                        Entry.InnerCover.Visible = true;
-                        Entry.InnerCover.Position = UDim2New(0, BoxX + 1, 0, BoxY + 1);
-                        Entry.InnerCover.Size = UDim2New(0, BoxW - 2, 0, BoxH - 2);
+                        if BoxType == "2D" then
+                            BoxOutline.Parent.Visible = true
+                            BoxOutline.Parent.Size = UDim2_fromOffset(BoxWidth, BoxHeight)
+                            BoxInline.Parent.Visible = true
+                            BoxInline.Parent.Size = UDim2_fromOffset(BoxWidth + 2, BoxHeight + 2)
 
-                        Entry.InnerStroke.Visible = true;
-                        Entry.InnerStroke.Position = UDim2New(0, BoxX + 1, 0, BoxY + 1);
-                        Entry.InnerStroke.Size = UDim2New(0, BoxW - 2, 0, BoxH - 2);
+                            local BoxInlineGradient, BoxOutlineGradient = Objects["BoxInlineGradient"], Objects["BoxOutlineGradient"]; do
+                                BoxInlineGradient.Color = ColorSequence_new{ColorSequenceKeypoint_new(0, BoxColor[1]), ColorSequenceKeypoint_new(1, BoxColor[2])}
+                                BoxInlineGradient.Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, BoxTransparency[1]), NumberSequenceKeypoint_new(1, BoxTransparency[2])}
+                                BoxInlineGradient.Rotation = BoxRotation
 
-                        if FillEnabled then
-                            Entry.BoxFill.Visible = true;
-                            Entry.BoxFill.Position = UDim2New(0, BoxX + 1, 0, BoxY + 1);
-                            Entry.BoxFill.Size = UDim2New(0, BoxW - 2, 0, BoxH - 2);
-                        end;
+                                BoxOutlineGradient.Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, BoxTransparency[1]), NumberSequenceKeypoint_new(1, BoxTransparency[2])}
+                                BoxOutlineGradient.Rotation = BoxRotation
+                            end
 
-                        if GlowEnabled then
-                            local Gx = BoxX - GlowPad;
-                            local Gy = BoxY - GlowPad;
-                            local Gw = BoxW + GlowPad2;
-                            local Gh = BoxH + GlowPad2;
-                            Entry.GlowTop.Visible = true;
-                            Entry.GlowTop.Position = UDim2New(0, Gx, 0, Gy);
-                            Entry.GlowTop.Size = UDim2New(0, Gw, 0, Gh);
-                            Entry.GlowBot.Visible = true;
-                            Entry.GlowBot.Position = UDim2New(0, Gx, 0, Gy);
-                            Entry.GlowBot.Size = UDim2New(0, Gw, 0, Gh);
-                        end;
-                    end;
+                            local BoxFillGradient = Objects["BoxFillGradient"]; do
+                                local BoxFillColor, BoxFillTransparency, BoxFillRotation = ESPSettings.BoundingBox.Fill.Color, ESPSettings.BoundingBox.Fill.Transparency, ESPSettings.BoundingBox.Fill.Rotation
 
-                    if BarEnabled then
-                        local Bx = BoxX - BarGapW;
-                        local By = BoxY - BarPad;
-                        local Bh = BoxH + BarPad2;
+                                BoxFill.Visible = ESPSettings.BoundingBox.Fill.Enabled
+                                BoxFill.Size = UDim2_fromOffset(BoxWidth, BoxHeight)
+                                BoxFillGradient.Rotation = BoxFillRotation
+                                BoxFillGradient.Color = ColorSequence_new{ColorSequenceKeypoint_new(0, BoxFillColor[1]), ColorSequenceKeypoint_new(1, BoxFillColor[2])}
+                                BoxFillGradient.Transparency = NumberSequence_new{NumberSequenceKeypoint_new(0, BoxFillTransparency[1]), NumberSequenceKeypoint_new(1, BoxFillTransparency[2])}
+                            end
+                        else
+                            local CornerHolder = Objects["CornerHolder"]; do
+                                CornerHolder.Visible = true
+                                CornerHolder.Size = UDim2_fromOffset(BoxWidth + 2, BoxHeight + 2)
+                            end
 
-                        Entry.BarX = Bx; Entry.BarY = By; Entry.BarH = Bh;
-                        Entry.BarLabelX = Bx - 14;
-                        Entry.BarLabelY = By;
+                            for i = 1, 8 do
+                                local Line = Objects["Line_" .. i]
+                                local Stroke = Line.UIStroke
+                                local LayoutPosition = Layout[i]
+                                local Position, Size, AnchorPoint, Rotation = LayoutPosition[1], LayoutPosition[2], LayoutPosition[3], LayoutPosition[4]
 
-                        Entry.BarOutline.Visible = true;
-                        Entry.BarOutline.Position = UDim2New(0, Bx - 1, 0, By - 1);
-                        Entry.BarOutline.Size = UDim2New(0, BarWidth2, 0, Bh + 2);
+                                Stroke.Transparency = BoxTransparency[1]
 
-                        Entry.BarBackground.Visible = true;
-                        Entry.BarBackground.Position = UDim2New(0, Bx, 0, By);
-                        Entry.BarBackground.Size = UDim2New(0, BarWidth, 0, Bh);
-                    end;
-
-                    if ArmorEnabled then
-                        local Ax = BoxX - ArmorBarPad;
-                        local Ay = BoxBot + ArmorBarGap;
-                        local Aw = BoxW + ArmorBarPad * 2;
-
-                        Entry.ArmorBarX = Ax;
-                        Entry.ArmorBarY = Ay;
-                        Entry.ArmorBarW = Aw;
-
-                        Entry.ArmorOutline.Visible = true;
-                        Entry.ArmorOutline.Position = UDim2New(0, Ax - 1, 0, Ay - 1);
-                        Entry.ArmorOutline.Size = UDim2New(0, Aw + 2, 0, ArmorBarHeight2);
-
-                        Entry.ArmorBackground.Visible = true;
-                        Entry.ArmorBackground.Position = UDim2New(0, Ax, 0, Ay);
-                        Entry.ArmorBackground.Size = UDim2New(0, Aw, 0, ArmorBarHeight);
-                    end;
-
-                    if FlagsEnabled then
-                        Entry.FlagsLabelX = BoxRight + BarGapW;
-                        Entry.FlagsLabelY = BoxY;
-                    end;
-                end;
-
-                if BarEnabled then
-                    local FillH = MathMax(MathFloor(Entry.BarH * Entry.Health), 1);
-                    if FillH ~= Entry.PrevFillH then
-                        Entry.PrevFillH = FillH;
-                        Entry.BarFill.Visible = true;
-                        Entry.BarFill.Position = UDim2New(0, Entry.BarX, 0, Entry.BarY + (Entry.BarH - FillH));
-                        Entry.BarFill.Size = UDim2New(0, BarWidth, 0, FillH);
-                    end;
-
-                    if HpTextEnabled then
-                        local HpStr = Entry.HpString;
-                        local HpLblX = Entry.BarLabelX;
-                        local HpLblY = Entry.BarLabelY;
-                        if HpStr ~= Entry.PrevHpStr or HpLblX ~= Entry.PrevHpLabelX or HpLblY ~= Entry.PrevHpLabelY then
-                            Entry.PrevHpStr = HpStr;
-                            Entry.PrevHpLabelX = HpLblX;
-                            Entry.PrevHpLabelY = HpLblY;
-                            Entry.LabelHp.Visible = true;
-                            Entry.LabelHp.Text = HpStr;
-                            Entry.LabelHp.Position = UDim2New(0, HpLblX + 1, 0, HpLblY + HpOffset);
-                        end;
-                    end;
-                end;
-
-                if ArmorEnabled and ArmorTypeFn then
-                    local CurrentArmor, MaxArmor = ArmorTypeFn(Entry.Character);
-                    local ArmorRatio = (MaxArmor and MaxArmor > 0)
-                        and MathClamp(CurrentArmor / MaxArmor, 0, 1)
-                        or 1;
-                    local FillW = MathMax(MathFloor(Entry.ArmorBarW * ArmorRatio), 1);
-                    if FillW ~= Entry.PrevArmorFillW then
-                        Entry.PrevArmorFillW = FillW;
-                        Entry.ArmorFill.Visible = true;
-                        Entry.ArmorFill.Position = UDim2New(0, Entry.ArmorBarX, 0, Entry.ArmorBarY);
-                        Entry.ArmorFill.Size = UDim2New(0, FillW, 0, ArmorBarHeight);
-                    end;
-                end;
-
-                if NameEnabled then
-                    local NmX = BoxCx;
-                    local NmY = BoxY + NameOffset;
-                    local NmStr = Entry.PlayerName;
-                    if NmStr ~= Entry.PrevNameStr or NmX ~= Entry.PrevNmLabelX or NmY ~= Entry.PrevNmLabelY then
-                        Entry.PrevNameStr = NmStr;
-                        Entry.PrevNmLabelX = NmX;
-                        Entry.PrevNmLabelY = NmY;
-                        Entry.LabelName.Visible = true;
-                        Entry.LabelName.Text = FormatText(NmStr);
-                        Entry.LabelName.Position = UDim2New(0, NmX, 0, NmY);
-                    end;
-                end;
-
-                if WeaponEnabled then
-                    local WpX = BoxCx;
-                    local WpY = ArmorEnabled
-                        and (BoxBot + ArmorBarGap + ArmorBarHeight + 2 + WeaponOffset)
-                        or (BoxBot + WeaponOffset);
-                    local WpStr = Entry.WeaponString;
-                    if WpStr ~= Entry.PrevWeaponStr or WpX ~= Entry.PrevWpLabelX or WpY ~= Entry.PrevWpLabelY then
-                        Entry.PrevWeaponStr = WpStr;
-                        Entry.PrevWpLabelX = WpX;
-                        Entry.PrevWpLabelY = WpY;
-                        local Show = (WpStr ~= "none") or WeaponShowNone;
-                        Entry.LabelWeapon.Visible = Show;
-                        Entry.LabelWeapon.Text = FormatText(WpStr);
-                        Entry.LabelWeapon.Position = UDim2New(0, WpX + 1, 0, WpY - 6);
-                    end;
-                end;
-
-                if DistEnabled and HasLocalPlayer then
-                    local Dx = Rx - LpX; local Dy = Ry - LpY; local Dz = Rz - LpZ;
-                    local Dist2 = Dx * Dx + Dy * Dy + Dz * Dz;
-                    local DtLblX = BoxCx;
-                    local DtLblY = BoxBot + DistOffset;
-                    local PrevDist = Entry.PrevDistance;
-                    local CurrentDist;
-
-                    if PrevDist < 0
-                        or Dist2 < (PrevDist - 0.5) * (PrevDist - 0.5)
-                        or Dist2 > (PrevDist + 0.5) * (PrevDist + 0.5)
-                    then
-                        CurrentDist = MathFloor(MathSqrt(Dist2));
+                                Line.Position = Position
+                                Line.Rotation = Rotation
+                                Line.BackgroundColor3 = BoxColor[1]
+                                Line.BackgroundTransparency = BoxTransparency[1]
+                                Line.Size = Size
+                                Line.AnchorPoint = AnchorPoint
+                                Line.Visible = true
+                            end
+                        end
                     else
-                        CurrentDist = PrevDist;
-                    end;
+                        BoxGlow.ImageTransparency = 1
+                        BoxOutline.Parent.Visible = false
+                        BoxInline.Parent.Visible = false
+                        BoxFill.Visible = false
 
-                    if CurrentDist ~= Entry.PrevDistance or DtLblX ~= Entry.PrevDtLabelX or DtLblY ~= Entry.PrevDtLabelY then
-                        local DistStr = (CurrentDist ~= Entry.PrevDistance)
-                            and (ToString(CurrentDist) .. Settings.Distance.Ending)
-                            or Entry.PrevDistStr;
-                        Entry.PrevDistance = CurrentDist;
-                        Entry.PrevDistStr = DistStr;
-                        Entry.PrevDtLabelX = DtLblX;
-                        Entry.PrevDtLabelY = DtLblY;
-                        Entry.LabelDist.Visible = true;
-                        Entry.LabelDist.Text = DistStr;
-                        Entry.LabelDist.Position = UDim2New(0, DtLblX, 0, DtLblY);
-                    end;
-                end;
+                        for i = 1, 8 do
+                            local Line = Objects["Line_" .. i]
+                            
+                            Line.Visible = false
+                        end
+                    end
+                end
 
-                if FlagsEnabled then
-                    local FlagsStr = Entry.FlagsString;
-                    local FlagsX = Entry.FlagsLabelX;
-                    local FlagsY = Entry.FlagsLabelY + FlagsOffset;
-                    if FlagsStr ~= Entry.PrevFlagsStr or FlagsX ~= Entry.PrevFlLabelX or FlagsY ~= Entry.PrevFlLabelY then
-                        Entry.PrevFlagsStr = FlagsStr;
-                        Entry.PrevFlLabelX = FlagsX;
-                        Entry.PrevFlLabelY = FlagsY;
-                        Entry.LabelFlags.Visible = FlagsStr ~= "";
-                        Entry.LabelFlags.Text = FormatText(FlagsStr);
-                        Entry.LabelFlags.Position = UDim2New(0, FlagsX + 2, 0, FlagsY - 4);
-                    end;
-                end;
-            end;
-        end);
+                for BarName, BarInfo in ESPSettings.Bars do
+                    local Bar, BarOutline, BarGradient = Objects[BarName], Objects[BarName .. "Outline"], Objects[BarName .. "Gradient"]; do
+                        local BarEnabled, BarColor, BarTransparency = BarInfo.Enabled, BarInfo.Color, BarInfo.Transparency
+                        local NewParent = Objects[`{BarInfo.Position}BarHolder`]
 
-        do
-            for _, Player in ipairs(Players:GetPlayers()) do
-                task.spawn(Esp.Add, Player);
-            end;
+                        if BarEnabled and IsPlayer then
+                            local BarValue = BarInfo.Type(Target, CharacterObjects)
+                            local BarSizes = {
+                                ["Top"] = UDim2_new(BarValue, 0, 0, 1),
+                                ["Bottom"] = UDim2_new(BarValue, 0, 0, 1),
+                                ["Left"] = UDim2_new(0, 1, BarValue, 0),
+                                ["Right"] = UDim2_new(0, 1, BarValue, 0),
+                            }
 
-            Esp.Connections[#Esp.Connections + 1] = Players.PlayerAdded:Connect(function(Player)
-                task.spawn(Esp.Add, Player);
-            end);
+                            local OutlineSizes = {
+                                ["Top"] = UDim2_new(1, 0, 0, 1),
+                                ["Bottom"] = UDim2_new(1, 0, 0, 1),
+                                ["Left"] = UDim2_new(0, 1, 1, 0),
+                                ["Right"] = UDim2_new(0, 1, 1, 0),
+                            }
 
-            Esp.Connections[#Esp.Connections + 1] = Players.PlayerRemoving:Connect(function(Player)
-                task.delay(0.1, Esp.Remove, Player);
-            end);
-        end;
+                            local GradientRotations = {
+                                ["Top"] = {-180, Vector2_new(1 - BarValue, 0)},
+                                ["Bottom"] = {-180, Vector2_new(1 - BarValue, 0)},
+                                ["Left"] = {90, Vector2_new(0, BarValue - 1)},
+                                ["Right"] = {90, Vector2_new(0, BarValue - 1)},
+                            }
 
-        do
-            local BotFolder = workspace:FindFirstChild("Bots");
-            if BotFolder then
-                local BotCache = {};
+                            local BarPositions = {
+                                ["Top"] = {Vector2_new(0, 0), UDim2_new(0, 0, 0, 0)},
+                                ["Bottom"] = {Vector2_new(0, 0), UDim2_new(0, 0, 0, 0)},
+                                ["Left"] = {Vector2_new(0, 1), UDim2_new(0, 0, 1, 0)},
+                                ["Right"] = {Vector2_new(0, 1), UDim2_new(0, 0, 1, 0)},
+                            }
 
-                local function BotAdd(Model)
-                    if not Model:IsA("Model") or BotCache[Model] then return; end;
-                    local Entry = Esp.EntryNew({ Name = Model.Name });
-                    Entry.PlayerName = Model.Name;
-                    BotCache[Model] = Entry;
-                    local List = Esp.List;
-                    List[#List + 1] = Entry;
-                    task.spawn(Esp.EntryLink, Entry, Model);
-                end;
+                            NewParent.Visible = true
 
-                local function BotRemove(Model)
-                    local Entry = BotCache[Model];
-                    if not Entry then return; end;
-                    BotCache[Model] = nil;
-                    local List = Esp.List;
-                    for i = 1, #List do
-                        if List[i] == Entry then
-                            List[i] = List[#List];
-                            List[#List] = nil;
-                            break;
-                        end;
-                    end;
-                    Esp.EntryDestroy(Entry);
-                end;
+                            Bar.AnchorPoint = BarPositions[BarInfo.Position][1]
+                            Bar.Position = BarPositions[BarInfo.Position][2]
+                            Bar.Size = BarSizes[BarInfo.Position]
 
-                for _, Bot in ipairs(BotFolder:GetChildren()) do
-                    task.spawn(BotAdd, Bot);
-                end;
+                            BarOutline.Parent = NewParent
+                            BarOutline.Size = OutlineSizes[BarInfo.Position]
 
-                Esp.Connections[#Esp.Connections + 1] = BotFolder.ChildAdded:Connect(BotAdd);
-                Esp.Connections[#Esp.Connections + 1] = BotFolder.ChildRemoved:Connect(BotRemove);
-            end;
-        end;
-    end;
-end;
--- In ESP (1).lua
-local Bridge = getgenv().ESPBridge
+                            BarGradient.Rotation = GradientRotations[BarInfo.Position][1]
+                            BarGradient.Offset = GradientRotations[BarInfo.Position][2]
+                            BarGradient.Color = ColorSequence_new{ColorSequenceKeypoint_new(0, BarColor[1]), ColorSequenceKeypoint_new(0, BarColor[2]), ColorSequenceKeypoint_new(1, BarColor[3])}
+                        else
+                            NewParent.Visible = false
+                        end
+                    end
 
--- This function runs every frame/render and reads from Bridge.Settings
-game:GetService("RunService").RenderStepped:Connect(function()
-    if Bridge.Settings.Enabled then
-        -- Your ESP drawing logic goes here, using Bridge.Settings.Box.Enabled, etc.
+                    local BarText = Objects[BarName .. "Text"]; do
+                        local BarTextEnabled, BarTextColor, BarTextTransparency = BarInfo.Text.Enabled, BarInfo.Text.Color, BarInfo.Text.Transparency
+                        local AnchorPoints = {
+                            ["Top"] = Vector2_new(0, 0.5),
+                            ["Bottom"] = Vector2_new(0, 0.5),
+                            ["Left"] = Vector2_new(0.5, 0),
+                            ["Right"] = Vector2_new(0.5, 0),
+                        }
+
+                        local Alignments = {
+                            ["Top"] = Enum.TextXAlignment.Right,
+                            ["Bottom"] = Enum.TextXAlignment.Right,
+                            ["Left"] = Enum.TextXAlignment.Center,
+                            ["Right"] = Enum.TextXAlignment.Center,
+                        }
+
+                        if BarTextEnabled and IsPlayer then
+                            local TextValue, TextVisible = BarInfo.Text.Type(Target, CharacterObjects)
+
+                            BarText.Text = `{tostring(math_floor(TextValue))}{BarInfo.Text.Ending}`
+                            BarText.TextColor3 = BarTextColor
+                            BarText.TextTransparency = BarTextTransparency
+                            BarText.UIStroke.Transparency = BarTextTransparency
+
+                            if BarInfo.Text.FollowBar then
+                                BarText.Visible = TextVisible
+                                BarText.Parent = Bar
+                                BarText.ZIndex = 10
+                                BarText.TextXAlignment = Alignments[BarInfo.Position]
+                                BarText.AnchorPoint = AnchorPoints[BarInfo.Position]
+                            else
+                                BarText.Visible = true
+                                BarText.Parent = Objects[`{BarInfo.Text.Position}TextHolder`]
+                                BarText.TextXAlignment = TextAlignments[BarInfo.Text.Position]
+                                BarText.AnchorPoint = Vector2_new(0, 0)
+                            end
+                        else
+                            BarText.Visible = false
+                        end
+                    end
+                end
+
+                local Chams = Objects["Highlight"]; do
+                    local ChamsEnabled, ChamsFill, ChamsOutline = ESPSettings.Chams.Enabled, ESPSettings.Chams.Fill, ESPSettings.Chams.Outline
+                    
+                    if ChamsEnabled then
+                        Chams.Enabled = true
+                        Chams.DepthMode = ESPSettings.Chams.DepthMode
+                        Chams.FillColor = ChamsFill[1]
+                        Chams.FillTransparency = ChamsFill[2]
+                        Chams.OutlineColor = ChamsOutline[1]
+                        Chams.OutlineTransparency = ChamsOutline[2]
+                    else
+                        Chams.Enabled = false
+                    end
+                end
+
+                local NameText = Objects["TargetName"]; do
+                    local NameEnabled, NameColor, NameTransparency = ESPSettings.Name.Enabled, ESPSettings.Name.Color, ESPSettings.Name.Transparency
+                    
+                    if NameEnabled then
+                        local TargetName = if ESPSettings.Name.UseDisplay then (IsPlayer and Target.DisplayName or Target.Name) else Target.Name
+
+                        NameText.Visible = true
+                        NameText.Text = Utility.GetFontType(ESPSettings, TargetName)
+                        NameText.TextXAlignment = TextAlignments[ESPSettings.Name.Position]
+                        NameText.Parent = Objects[`{ESPSettings.Name.Position}TextHolder`]
+                        NameText.TextColor3 = NameColor
+                        NameText.TextTransparency = NameTransparency
+                        NameText.UIStroke.Transparency = NameTransparency
+                    else
+                        NameText.Visible = false
+                    end
+                end
+
+                local DistanceText = Objects["Distance"]; do
+                    local DistanceEnabled, DistanceColor, DistanceTransparency = ESPSettings.Distance.Enabled, ESPSettings.Distance.Color, ESPSettings.Distance.Transparency
+                    
+                    if DistanceEnabled then
+                        DistanceText.Visible = true
+                        DistanceText.TextXAlignment = TextAlignments[ESPSettings.Distance.Position]
+                        DistanceText.Parent = Objects[`{ESPSettings.Distance.Position}TextHolder`]
+                        DistanceText.TextColor3 = DistanceColor
+                        DistanceText.TextTransparency = DistanceTransparency
+                        DistanceText.UIStroke.Transparency = DistanceTransparency
+                        DistanceText.Text = Utility.GetFontType(ESPSettings, `{tostring(math_floor(Distance))}{ESPSettings.Distance.Ending}`)
+                    else
+                        DistanceText.Visible = false
+                    end
+                end
+
+                local WeaponText = Objects["Weapon"]; do
+                    local WeaponEnabled, WeaponColor, WeaponTransparency = ESPSettings.Weapon.Enabled, ESPSettings.Weapon.Color, ESPSettings.Weapon.Transparency
+                    
+                    if IsPlayer and WeaponEnabled then
+                        local Tool = PlayerHelper.GetTool(Target) or TargetInfo.CurrentTool
+
+                        WeaponText.Visible = true
+                        WeaponText.TextXAlignment = TextAlignments[ESPSettings.Weapon.Position]
+                        WeaponText.Parent = Objects[`{ESPSettings.Weapon.Position}TextHolder`]
+                        WeaponText.TextColor3 = WeaponColor
+                        WeaponText.TextTransparency = WeaponTransparency
+                        WeaponText.UIStroke.Transparency = WeaponTransparency
+                        WeaponText.Text = Utility.GetFontType(ESPSettings, Tool)
+                    else
+                        WeaponText.Visible = false
+                    end
+                end
+
+                local FlagsText = Objects["Flags"]; do
+                    local FlagsEnabled, FlagsColor, FlagsTransparency = ESPSettings.Flags.Enabled, ESPSettings.Flags.Color, ESPSettings.Flags.Transparency
+                    
+                    if FlagsEnabled then
+                        local Flags = ESPSettings.Flags.Type(Target, CharacterObjects)
+
+                        FlagsText.Visible = true
+                        FlagsText.TextXAlignment = TextAlignments[ESPSettings.Flags.Position]
+                        FlagsText.Parent = Objects[`{ESPSettings.Flags.Position}TextHolder`]
+                        FlagsText.TextColor3 = FlagsColor
+                        FlagsText.TextTransparency = FlagsTransparency
+                        FlagsText.UIStroke.Transparency = FlagsTransparency
+                        FlagsText.Text = table_concat(Flags, "\n")
+                    else
+                        FlagsText.Visible = false
+                    end
+                end
+            end
+
+            function TargetInfo.Remove()
+                for _, Object in Objects do
+                    Object:Destroy()
+                end
+
+                if TargetInfo.CharacterConnection then
+                    TargetInfo.CharacterConnection:Disconnect()
+                    TargetInfo.CharacterConnection = nil
+                end
+
+                if ToolConnection.Added then
+                    ToolConnection.Added:Disconnect()
+                    ToolConnection.Added = nil
+                end
+
+                if ToolConnection.Removed then
+                    ToolConnection.Removed:Disconnect()
+                    ToolConnection.Removed = nil
+                end
+
+                ESP.Targets[Type][Target] = nil
+            end
+        end
+
+        TargetInfo.Init()
     end
-end)
+    
+    function ESP.RemoveTarget(NewTarget, Type)
+        for Type, _ in ESP.Settings do
+            for Target, TargetInfo in ESP.Targets[Type] do
+                if Target == NewTarget then
+                    TargetInfo.Remove()
+                end
+            end
+        end
+    end
+
+    function ESP.Init()
+        for Type, _ in ESPSettings do
+            if not ESP.Targets[Type] then ESP.Targets[Type] = {} end
+        end
+    end
+
+    function ESP.Unload()
+        for _, Connection in ConnectionsTable do
+            Connection:Disconnect()
+        end
+
+        for _, Object in ObjectsTable do
+            Object:Destroy()
+        end
+
+        getgenv().Fonts = nil
+    end
+end
+
+do -- Connections
+    ESP.Init()
+
+    for _, Player in Players:GetPlayers() do
+        ESP.AddTarget(Player, "Players")
+    end
+
+    Utility.AddConnection(Players.PlayerAdded, LPH_NO_VIRTUALIZE(function(Player)
+        Player.CharacterAdded:Wait()
+
+        ESP.AddTarget(Player, "Players")
+    end))
+
+    Utility.AddConnection(Players.PlayerRemoving, LPH_NO_VIRTUALIZE(function(Player)
+        ESP.RemoveTarget(Player, "Players")
+    end))
+
+    Utility.AddConnection(RunService.PreRender, LPH_NO_VIRTUALIZE(function()
+        for Type, _ in ESP.Settings do
+            for _, Target in ESP.Targets[Type] do
+                Target.Update()
+            end
+        end
+    end))
+end
