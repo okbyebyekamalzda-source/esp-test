@@ -35,7 +35,7 @@ getgenv().ESP = {
     Settings = {
         Players = {
             Enabled = true,
-            LocalPlayer = true,
+            LocalPlayer = false,
 
             Font = "Tahoma",
             FontSize = 12,
@@ -45,33 +45,33 @@ getgenv().ESP = {
             RefreshRate = 60,
 
             BoundingBox = {
-                Enabled = true,
+                Enabled = false,
                 DynamicBox = true, -- may drop fps
                 IncludeAccessories = false,
                 Type = "2D", -- 2D, Corner
                 
                 Rotation = 90,
-                Color = {Color3_fromRGB(216, 126, 157), Color3_fromRGB(216, 126, 157)},
+                Color = {Color3_fromRGB(255, 0, 0), Color3_fromRGB(255, 0, 0)},
                 Transparency = {0, 0},
 
                 Glow = {
                     Enabled = false,
                     Rotation = 90,
-                    Color = {Color3_fromRGB(216, 126, 157), Color3_fromRGB(216, 126, 157)},
+                    Color = {Color3_fromRGB(255, 0, 0), Color3_fromRGB(255, 0, 0)},
                     Transparency = {0.75, 0.75},
                 },
 
                 Fill = {
-                    Enabled = true,
+                    Enabled = false,
                     Rotation = 90,
-                    Color = {Color3_fromRGB(216, 126, 157), Color3_fromRGB(216, 126, 157)},
+                    Color = {Color3_fromRGB(255, 0, 0), Color3_fromRGB(255, 0, 0)},
                     Transparency = {1, 0.5},
                 },
             },
 
             Bars = {
                 HealthBar = {
-                    Enabled = true,
+                    Enabled = false,
                     Position = "Left",
                     Color = {Color3_fromRGB(131, 245, 78), Color3_fromRGB(255, 255, 0), Color3_fromRGB(252, 71, 77)},
 
@@ -85,7 +85,7 @@ getgenv().ESP = {
                     end,
 
                     Text = {
-                        Enabled = true,
+                        Enabled = false,
                         FollowBar = true,
                         Ending = "",
                         Position = "Left", -- // will ignore if FollowBar is true
@@ -104,7 +104,7 @@ getgenv().ESP = {
                 },
 
                 ArmorBar = {
-                    Enabled = true,
+                    Enabled = false,
                     Position = "Bottom",
                     Color = {Color3_fromRGB(52, 131, 235), Color3_fromRGB(52, 131, 235), Color3_fromRGB(52, 131, 235)},
 
@@ -118,7 +118,7 @@ getgenv().ESP = {
                     end,
 
                     Text = {
-                        Enabled = true,
+                        Enabled = false,
                         FollowBar = true,
                         Ending = "%",
                         Position = "Left", -- // will ignore if FollowBar is true
@@ -138,14 +138,14 @@ getgenv().ESP = {
             },
 
             Chams = {
-                Enabled = true,
+                Enabled = false,
                 DepthMode = Enum.HighlightDepthMode.AlwaysOnTop,
-                Fill = {Color3_fromRGB(216, 126, 157), 0.5},
+                Fill = {Color3_fromRGB(255, 0, 0), 0.5},
                 Outline = {Color3_fromRGB(0, 0, 0), 0.5},
             },
 
             Name = {
-                Enabled = true,
+                Enabled = false,
                 UseDisplay = true,
                 Position = "Top",
                 Color = Color3_fromRGB(255, 255, 255),
@@ -153,7 +153,7 @@ getgenv().ESP = {
             },
 
             Distance = {
-                Enabled = true,
+                Enabled = false,
                 Ending = "st",
                 Position = "Bottom",
                 Color = Color3_fromRGB(255, 255, 255),
@@ -161,14 +161,14 @@ getgenv().ESP = {
             },
 
             Weapon = {
-                Enabled = true,
+                Enabled = false,
                 Position = "Bottom",
                 Color = Color3_fromRGB(255, 255, 255),
                 Transparency = 0,
             },
 
             Flags = {
-                Enabled = true,
+                Enabled = false,
                 Position = "Right",
                 Color = Color3_fromRGB(255, 255, 255),
                 Transparency = 0,
