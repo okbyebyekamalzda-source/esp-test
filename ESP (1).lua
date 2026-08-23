@@ -57,7 +57,7 @@ getgenv().ESP = {
                 Glow = {
                     Enabled = false,
                     Rotation = 90,
-                    Color = {Color3_fromRGB(255, 0, 0), Color3_fromRGB(255, 0, 0)},
+                    Color = {Color3_fromRGB(45, 60, 80), Color3_fromRGB(45, 60, 80)},
                     Transparency = {0.75, 0.75},
                 },
 
@@ -140,7 +140,7 @@ getgenv().ESP = {
             Chams = {
                 Enabled = false,
                 DepthMode = Enum.HighlightDepthMode.AlwaysOnTop,
-                Fill = {Color3_fromRGB(255, 0, 0), 0.5},
+                Fill = {Color3_fromRGB(45, 60, 80), 0.5},
                 Outline = {Color3_fromRGB(0, 0, 0), 0.5},
             },
 
